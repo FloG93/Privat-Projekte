@@ -1,0 +1,197 @@
+/* Eigene Farbe des Projekts: Bernstein wie die Routenlinie auf der Karte. */
+:root {
+  --accent: #fbbf24;
+  --accent-ink: #26190a;
+  --link: #fcd34d;
+  --focus: #fcd34d;
+  --panel: 20rem;
+}
+
+:root[data-theme='light'] {
+  --accent: #b45309;
+  --accent-ink: #ffffff;
+  --link: #9a4a06;
+  --focus: #b45309;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    --accent: #b45309;
+    --accent-ink: #ffffff;
+    --link: #9a4a06;
+    --focus: #b45309;
+  }
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Kopfzeile --------------------------------------------------------------- */
+
+.app-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  flex: none;
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.app-head h1 {
+  margin: 0;
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+}
+
+.home {
+  color: var(--text-muted);
+  font-size: 1.2rem;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.home:hover {
+  color: var(--accent);
+}
+
+.status {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--accent);
+}
+
+.style-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: auto;
+  font-size: 0.9rem;
+}
+
+.style-picker span {
+  color: var(--text-muted);
+}
+
+.style-picker select {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.4rem;
+  background: var(--chip);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.btn.icon {
+  padding: 0.35rem 0.6rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* Hauptbereich ------------------------------------------------------------ */
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.panel {
+  flex: none;
+  width: var(--panel);
+  overflow-y: auto;
+  padding: 1rem;
+  border-right: 1px solid var(--line);
+  background: var(--bg);
+  font-size: 0.92rem;
+}
+
+.panel h2 {
+  margin: 0 0 0.3rem;
+  font-size: 0.98rem;
+}
+
+.panel section + ol,
+.panel ol + section {
+  margin-top: 1rem;
+}
+
+.muted {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.small {
+  font-size: 0.84rem;
+}
+
+.roadmap {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.roadmap li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.5rem;
+  align-items: start;
+  color: var(--text);
+}
+
+.roadmap .tag {
+  margin-top: 0.1rem;
+}
+
+.box {
+  padding: 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  background: var(--card);
+}
+
+.box p {
+  margin: 0;
+}
+
+.box p + p {
+  margin-top: 0.3rem;
+}
+
+.map {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Die Attribution ist Pflicht – klein, aber immer lesbar. */
+.maplibregl-ctrl-attrib {
+  font-size: 11px;
+}
+
+@media (max-width: 52rem) {
+  .app-body {
+    flex-direction: column;
+  }
+
+  .panel {
+    width: auto;
+    max-height: 45%;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .map {
+    min-height: 16rem;
+  }
+
+  .style-picker {
+    margin-left: 0;
+  }
+}

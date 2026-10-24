@@ -1,0 +1,44 @@
+name: Tests
+
+# Jedes Projekt bringt seine Tests im eigenen Ordner mit (<Projekt>/tests/).
+# Die Typprüfung läuft über alle Projekte gemeinsam (tsconfig.json im Hauptordner).
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  typecheck:
+    name: Typen prüfen (JSDoc, ohne Build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run typecheck
+
+  travel-map:
+    name: Travel-Map-Generator – Unit-Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm run test:travel-map
+
+  links:
+    name: Verweise und Pfade prüfen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Jede verlinkte Datei muss es geben
+        run: node tools/check-links.mjs

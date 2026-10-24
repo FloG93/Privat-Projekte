@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Travel-Map-Generator</title>
+    <meta
+      name="description"
+      content="Verwandelt Reisedaten in animierte Karten-Videos und interaktive Web-Karten – direkt im Browser, ohne Installation."
+    />
+    <meta name="theme-color" content="#0e1116" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <script>
+      // Früh genug, damit beim Laden nicht kurz die falsche Variante aufblitzt.
+      try {
+        const t = localStorage.getItem('privat-projekte.theme')
+        if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t
+      } catch (e) {
+        /* privates Fenster: Systemvorgabe genügt */
+      }
+    </script>
+    <link rel="stylesheet" href="../shared/css/ui.css" />
+    <link rel="stylesheet" href="vendor/maplibre-gl/maplibre-gl.css" />
+    <link rel="stylesheet" href="css/app.css" />
+  </head>
+  <body>
+    <header class="app-head">
+      <a class="home" href="../" title="Zur Übersicht">←</a>
+      <h1>Travel-Map-Generator</h1>
+      <span class="tag status">Meilenstein M0 – Gerüst</span>
+      <label class="style-picker">
+        <span>Kartenstil</span>
+        <select id="map-style"></select>
+      </label>
+      <button id="theme-toggle" class="btn icon" type="button"></button>
+    </header>
+
+    <main class="app-body">
+      <aside class="panel">
+        <section>
+          <h2>Noch nichts zu tun</h2>
+          <p class="muted">
+            Das Gerüst steht: Karte, gemeinsames Design und Auslieferung über
+            GitHub&nbsp;Pages laufen. Die eigentlichen Funktionen kommen in
+            dieser Reihenfolge.
+          </p>
+        </section>
+
+        <ol class="roadmap">
+          <li><span class="tag">M1</span> Datenmodell, Projekt speichern, Punkte auf der Karte setzen</li>
+          <li><span class="tag">M2</span> Routing (Auto, Motorrad, Fahrrad, zu Fuß), Fluglinien, GPX-Import</li>
+          <li><span class="tag">M3</span> Animation der Linie, Fahrzeug-Marker, Kamerafahrt mit Keyframes</li>
+          <li><span class="tag">M4</span> Video-Export als vertikales MP4 (9:16) mit Musik</li>
+        </ol>
+
+        <section class="box">
+          <h2>Video-Export in diesem Browser</h2>
+          <p id="capability-label"></p>
+          <p id="capability-note" class="muted small"></p>
+        </section>
+      </aside>
+
+      <div id="map" class="map"></div>
+    </main>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>

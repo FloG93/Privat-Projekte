@@ -1,0 +1,68 @@
+name: GitHub Pages
+
+# Veröffentlicht die Übersichtsseite und alle Projekte bei jedem Push auf den
+# Standard-Branch: index.html → /Privat-Projekte/, jeder Ordner mit einer
+# index.html (z. B. Travel-Map-Generator/) → /Privat-Projekte/<Ordner>/.
+# Einmalig nötig: Settings → Pages → Build and deployment → Source: "GitHub Actions".
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Prüfen, ob GitHub Pages aktiviert ist
+        id: pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh api "repos/${{ github.repository }}/pages" --silent 2>/dev/null; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=GitHub Pages ist noch nicht aktiviert::Settings → Pages → Build and deployment → Source: GitHub Actions wählen und diesen Workflow erneut starten."
+          fi
+      - uses: actions/checkout@v4
+        if: steps.pages.outputs.enabled == 'true'
+      - name: Seite zusammenstellen
+        if: steps.pages.outputs.enabled == 'true'
+        run: |
+          mkdir -p _site
+          cp index.html favicon.svg _site/
+          # Gemeinsames Design und gemeinsame Bausteine der Projekte.
+          cp -r shared _site/shared
+          rm -f _site/shared/README.md
+          for dir in */; do
+            project="${dir%/}"
+            [ "$project" != _site ] && [ "$project" != shared ] && [ -f "$project/index.html" ] || continue
+            # Nicht auf die Seite: Tests, Doku-Bilder, Anleitungen, Typen.
+            cp -r "$project" "_site/$project"
+            rm -rf "_site/$project/tests" "_site/$project/docs"
+            rm -f "_site/$project"/*.md "_site/$project"/vendor/*/*.d.mts "_site/$project"/vendor/*/README.md
+            echo "Veröffentlicht: /$project/"
+          done
+      - uses: actions/configure-pages@v5
+        if: steps.pages.outputs.enabled == 'true'
+      - uses: actions/upload-pages-artifact@v3
+        if: steps.pages.outputs.enabled == 'true'
+        with:
+          path: _site
+      - name: Veröffentlichen
+        id: deployment
+        if: steps.pages.outputs.enabled == 'true'
+        uses: actions/deploy-pages@v4

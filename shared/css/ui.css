@@ -1,0 +1,142 @@
+/*
+ * Gemeinsames Design aller Projekte: Farben, Typografie, Knöpfe, Karten.
+ * Jedes Projekt bindet die Datei relativ ein (../shared/css/ui.css) und darf
+ * einzelne Token in der eigenen CSS überschreiben – z. B. --accent.
+ *
+ * Hell/Dunkel: Standard folgt dem System. Ein Projekt kann umschalten, indem es
+ * data-theme="light" oder "dark" auf <html> setzt; gemerkt wird das für alle
+ * Projekte unter dem Schlüssel privat-projekte.theme.
+ */
+
+:root {
+  color-scheme: dark;
+  --bg: #0e1116;
+  --card: #171b22;
+  --chip: #222731;
+  --line: #272d38;
+  --line-strong: #39414f;
+  --text: #e7eaef;
+  --text-muted: #a2abb8;
+  --text-faint: #7b8694;
+  --accent: #2dd4bf;
+  --accent-ink: #06201c;
+  --link: #5eead4;
+  --focus: #5eead4;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px rgb(0 0 0 / 0.35);
+  --radius: 14px;
+  --wrap: 60rem;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+  --bg: #eef1f4;
+  --card: #ffffff;
+  --chip: #f1f3f6;
+  --line: #e0e4ea;
+  --line-strong: #c7ced8;
+  --text: #1b1f25;
+  --text-muted: #535c68;
+  --text-faint: #6d7682;
+  --accent: #0d9488;
+  --accent-ink: #ffffff;
+  --link: #0f766e;
+  --focus: #0d9488;
+  --shadow: 0 1px 2px rgb(20 30 50 / 0.06), 0 10px 28px rgb(20 30 50 / 0.1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme='dark']) {
+    color-scheme: light;
+    --bg: #eef1f4;
+    --card: #ffffff;
+    --chip: #f1f3f6;
+    --line: #e0e4ea;
+    --line-strong: #c7ced8;
+    --text: #1b1f25;
+    --text-muted: #535c68;
+    --text-faint: #6d7682;
+    --accent: #0d9488;
+    --accent-ink: #ffffff;
+    --link: #0f766e;
+    --focus: #0d9488;
+    --shadow: 0 1px 2px rgb(20 30 50 / 0.06), 0 10px 28px rgb(20 30 50 / 0.1);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font:
+    16px/1.6 system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+}
+
+a {
+  color: var(--link);
+}
+
+:where(a, button, select, input, summary):focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--wrap);
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* Knöpfe ------------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.5rem;
+  background: var(--chip);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+}
+
+.btn.primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Marken-Chip (Status, Formate, Schlagworte) ------------------------------- */
+
+.tag {
+  display: inline-block;
+  padding: 0.1rem 0.5rem;
+  border-radius: 0.3rem;
+  background: var(--chip);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}

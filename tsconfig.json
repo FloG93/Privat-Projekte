@@ -1,0 +1,27 @@
+{
+  // Kein Build: tsc erzeugt nichts, es prüft nur die JSDoc-Typen im reinen
+  // JavaScript (npm run typecheck). Gestartet wird es über npx, es liegt also
+  // kein npm-Paket im Repository.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "exactOptionalPropertyTypes": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["shared/js/**/*.js", "*/js/**/*.js", "*/tests/**/*.mjs", "types/**/*.d.ts"]
+}
