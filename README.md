@@ -10,7 +10,7 @@ verlinkt alle Projekte.
 
 | Projekt | Was es macht | Online | Anleitung |
 | --- | --- | --- | --- |
-| **Travel-Map-Generator** | Verwandelt Reisedaten in animierte Karten-Videos und interaktive Web-Karten: Route aus Punkten, Smart Routing oder GPX-Track, Fotos an ihren Koordinaten, Kamerafahrt über 3D-Gelände. Export als Video, transparente Overlay-Spur oder einbettbare Karte für den Blog. *(im Aufbau – Meilenstein M0)* | [Öffnen](https://flog93.github.io/Privat-Projekte/Travel-Map-Generator/) | [Travel-Map-Generator](Travel-Map-Generator/README.md) |
+| **Travel-Map-Generator** | Verwandelt Reisedaten in animierte Karten-Videos und interaktive Web-Karten: Route aus Punkten, Smart Routing oder GPX-Track, Fotos an ihren Koordinaten, Kamerafahrt über 3D-Gelände. Export als Video, transparente Overlay-Spur oder einbettbare Karte für den Blog. *(im Aufbau – Meilenstein M1)* | [Öffnen](https://flog93.github.io/Privat-Projekte/Travel-Map-Generator/) | [Travel-Map-Generator](Travel-Map-Generator/README.md) |
 
 ## Aufbau
 

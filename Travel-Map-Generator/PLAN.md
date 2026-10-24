@@ -71,14 +71,22 @@ einem Deploy auf Pages.
   Chromium geprüft). Offen bleibt nur das Einschalten von Pages im
   Repository – das geht nur von Hand.
 
-### M1 – Datenmodell und Karte
-- Projekt-Schema v1 (`js/core/model.js`, JSDoc-Typen) mit Versionierung und
-  Migrationshaken.
-- MapLibre-Karte, keyless Basiskarte (OpenFreeMap), Projekt in IndexedDB
-  speichern/laden, Export/Import `.tmgz`.
-- Manueller Modus: Punkte per Klick setzen, verschieben, löschen, sortieren;
-  Luftlinien-Verbindung.
-- **Abnahme:** Eine Route aus mehreren Punkten übersteht einen Browser-Neustart.
+### M1 – Datenmodell und Karte (erledigt)
+- Projekt-Schema v1 (`js/core/model.js`, JSDoc-Typen) mit Wegpunkten und
+  Etappen, reinen Operationen, Prüfung und Migrationshaken.
+- Projekt in IndexedDB, Autosave mit Verzögerung, zuletzt offenes Projekt wird
+  beim nächsten Besuch zurückgeholt.
+- Export und Import als `.tmgz` – ein echtes ZIP, von Hand geschrieben mit der
+  nativen `CompressionStream`, ohne Bibliothek.
+- Manueller Modus: Punkte per Klick setzen, per Marker ziehen, benennen,
+  löschen, mit Pfeilknöpfen oder Ziehen umsortieren; Luftlinien-Verbindung,
+  Längenanzeige, „Alles zeigen".
+- **Abnahme erfüllt:** Im Container mit Chromium geprüft – drei Punkte gesetzt,
+  umbenannt, umsortiert; nach dem Neuladen im selben Profil sind Route,
+  Reihenfolge, Namen und Länge unverändert da. Export lädt eine `.tmgz`
+  herunter, die Pythons `zipfile` und `unzip -t` als gültig lesen; Import in ein
+  leeres Profil stellt dieselbe Route wieder her, eine kaputte Datei bringt eine
+  verständliche Meldung statt einer leeren Karte.
 
 ### M2 – Routing und GPX (Kapitel 1 deiner Beschreibung)
 - Provider-Abstraktion für Routing mit Fähigkeiten-Tabelle.

@@ -195,3 +195,209 @@ body {
     margin-left: 0;
   }
 }
+
+/* Projekttitel in der Kopfzeile ------------------------------------------- */
+
+.project-title {
+  min-width: 8rem;
+  max-width: 22rem;
+  flex: 1 1 12rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 0.4rem;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+}
+
+.project-title:hover {
+  border-color: var(--line);
+}
+
+.project-title:focus {
+  border-color: var(--line-strong);
+  background: var(--bg);
+  outline: none;
+}
+
+/* Seitenleiste ------------------------------------------------------------ */
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.btn.small {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.82rem;
+}
+
+.btn[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn[disabled]:hover {
+  border-color: var(--line-strong);
+}
+
+.notice {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid color-mix(in srgb, #f87171 45%, var(--line));
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, #f87171 12%, transparent);
+  font-size: 0.85rem;
+}
+
+.route-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.route-head h2 {
+  margin: 0;
+}
+
+/* Wegpunkte --------------------------------------------------------------- */
+
+.waypoints {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.waypoint {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    'number name actions'
+    'number meta actions';
+  gap: 0 0.5rem;
+  align-items: center;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--card);
+  cursor: grab;
+}
+
+.waypoint.is-selected {
+  border-color: var(--accent);
+}
+
+.waypoint.is-dragging {
+  opacity: 0.4;
+}
+
+.waypoint.is-drop-target {
+  border-color: var(--accent);
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.waypoint-number {
+  grid-area: number;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.waypoint-name {
+  grid-area: name;
+  min-width: 0;
+  padding: 0.1rem 0.2rem;
+  border: 1px solid transparent;
+  border-radius: 0.3rem;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.waypoint-name:hover {
+  border-color: var(--line);
+}
+
+.waypoint-name:focus {
+  border-color: var(--line-strong);
+  background: var(--bg);
+  outline: none;
+  cursor: text;
+}
+
+.waypoint-meta {
+  grid-area: meta;
+  padding-left: 0.2rem;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+.waypoint-actions {
+  grid-area: actions;
+  display: flex;
+  gap: 0.15rem;
+}
+
+.waypoint-button {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 0.3rem;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.waypoint-button:hover:not([disabled]) {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.waypoint-button[disabled] {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* Marker auf der Karte ---------------------------------------------------- */
+
+.route-marker {
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding: 0;
+  border: 2px solid var(--accent-ink);
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: grab;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.45);
+}
+
+.route-marker.is-selected {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.route-marker:active {
+  cursor: grabbing;
+}

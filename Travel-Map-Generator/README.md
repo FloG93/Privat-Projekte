@@ -6,8 +6,10 @@ Läuft vollständig im Browser – kein Server, keine Installation, keine Anmeld
 
 **Öffnen:** <https://flog93.github.io/Privat-Projekte/Travel-Map-Generator/>
 
-> **Stand: Meilenstein M0 – Gerüst.** Karte, gemeinsames Design und
-> Auslieferung stehen. Routen, Animation und Video-Export folgen in M1–M4.
+> **Stand: Meilenstein M1 – Datenmodell und Karte.** Punkte setzen, ziehen,
+> benennen, umsortieren; die Reise wird automatisch gespeichert und ist beim
+> nächsten Besuch wieder da. Export und Import als `.tmgz`. Echtes Routing,
+> Animation und Video-Export folgen in M2–M4.
 
 - [`PLAN.md`](PLAN.md) – Meilensteine M0–M9 mit Abnahmekriterien
 - [`ARCHITECTURE.md`](ARCHITECTURE.md) – Aufbau, Datenmodell, Export-Pipeline, Grenzen
@@ -16,11 +18,19 @@ Läuft vollständig im Browser – kein Server, keine Installation, keine Anmeld
 
 | Meilenstein | Inhalt |
 | --- | --- |
-| M1 | Datenmodell, Projekt speichern, Punkte auf der Karte setzen |
 | M2 | Routing (Auto, Motorrad, Fahrrad, zu Fuß), Fluglinien, GPX-Import |
 | M3 | Animation der Linie, Fahrzeug-Marker, Kamerafahrt mit Keyframes |
 | M4 | Video-Export als vertikales MP4 (9:16) mit Musik |
 | M5–M9 | Kartenstile und 3D-Gelände, Medien und Wetter, Alpha-Spur für den Schnitt, einbettbare Karte, Reife |
+
+## Bedienung
+
+- **Klick auf die Karte** hängt einen Punkt hinten an die Reise.
+- **Marker ziehen** verschiebt einen Punkt.
+- In der Liste lassen sich Punkte **benennen**, mit **▲ ▼ oder Ziehen
+  umsortieren** und mit **✕ entfernen**.
+- Gespeichert wird von selbst. „Sichern …" legt eine `.tmgz`-Datei ab,
+  „Öffnen …" liest sie wieder ein – das ist auch das Backup-Format.
 
 ## Aufbau
 
@@ -28,10 +38,14 @@ Läuft vollständig im Browser – kein Server, keine Installation, keine Anmeld
 index.html         Die App – statisches Markup
 css/app.css        Eigene Farbe und Layout (Rest kommt aus ../shared/css/ui.css)
 js/main.js         Einstieg: verdrahtet Markup und Module
-js/map/            Kartenstile und MapLibre-Einrichtung
+js/core/           Reine Logik: Projekt-Schema (model.js), Geometrie (geo.js)
+js/map/            Kartenstile, MapLibre-Einrichtung, Route und Marker
+js/state/          Kleiner Zustandsspeicher und Verzögerung fürs Autosave
+js/storage/        IndexedDB (db.js) und das .tmgz-Format (archive.js)
+js/ui/             Die Wegpunktliste
 js/export/         Prüfung, was der Browser beim Video-Export kann
 vendor/maplibre-gl/  MapLibre unverändert, mit Lizenz und VERSION
-tests/             node --test
+tests/             node --test, inklusive einer Fremdpacker-Datei als Fixture
 ```
 
 Kein Build-Schritt, nur relative Pfade. Lokal starten:

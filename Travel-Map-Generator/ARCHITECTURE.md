@@ -55,54 +55,64 @@ draußen. Weil nur relative Pfade benutzt werden, verhält sich
 | Video | WebCodecs + Muxer, Fallback `ffmpeg.wasm` | Siehe Abschnitt 7. Beide kommen als `vendor/`-Datei dazu, sobald M4 ansteht. |
 | Tests | `node --test`, dazu `tools/check-links.mjs` | Ohne Build gibt es nichts, das kaputte Pfade meldet – deshalb prüft ein eigener Test jeden relativen Verweis. |
 
-## 3. Datenmodell (Schema v1, Auszug)
+## 3. Datenmodell (Schema v1)
 
 Eine Projektdatei ist JSON; `.tmgz` ist ein ZIP aus `project.json` plus
-optionalen Medien. `schemaVersion` wird bei jedem Laden geprüft und migriert.
+optionalen Medien (ab M6). `schemaVersion` wird bei jedem Laden geprüft und
+nötigenfalls migriert.
 
-So sieht das aus – im Code stehen diese Typen als JSDoc in
-`js/core/model.js`, hier verkürzt in Typschreibweise:
+Der Aufbau ist **Wegpunkte plus Etappen dazwischen**: `legs[i]` verbindet
+`waypoints[i]` mit `waypoints[i + 1]`, es gibt also immer genau eine Etappe
+weniger als Punkte. `validateProject()` prüft diese Zusage, und jede Operation
+in `js/core/model.js` hält sie ein.
+
+Warum der Modus an der Etappe hängt und nicht am Projekt: Eine Reise fährt mit
+dem Motorrad bis zum Hafen, setzt per Schiff über und fährt weiter. Ein Modus
+fürs ganze Projekt könnte das nicht abbilden, und ein nachträglicher Umbau
+hätte jede gespeicherte Datei migrieren müssen.
 
 ```js
 /**
  * @typedef {object} Project
- * @property {1} schemaVersion
+ * @property {number} schemaVersion
  * @property {string} id
  * @property {string} title
- * @property {string} createdAt
- * @property {string} updatedAt
- * @property {Segment[]} segments      Reihenfolge = Reiseverlauf
- * @property {MediaItem[]} media
- * @property {Annotation[]} annotations  Banderolen, Kapitel, Sprachnotizen
- * @property {StyleSettings} style     Kartenstil, Linie, Terrain, Umwelt-Overlays
- * @property {CameraSettings} camera   Modus + Keyframes
- * @property {TimingSettings} timing   Gesamtdauer, Pausen, Easing
- * @property {ExportSettings} export   Seitenverhältnis, fps, Audio, Alpha
+ * @property {string} createdAt   ISO-8601
+ * @property {string} updatedAt   ISO-8601
+ * @property {Waypoint[]} waypoints
+ * @property {Leg[]} legs         immer max(waypoints.length - 1, 0) Stück
+ * @property {{styleId: string}} style
+ *
+ * Ab M6 kommen hier media, annotations, camera, timing und export dazu –
+ * jeweils mit einem Migrationsschritt in migrateProject().
  */
 
 /**
- * @typedef {RoutedSegment | ArcSegment | GpxSegment} Segment
- *
- * RoutedSegment: kind 'routed', mode TravelMode, options RouteOptions,
- *   waypoints, geometry, stats, provider, fetchedAt  – Ergebnis wird gespeichert
- * ArcSegment:    kind 'arc', mode 'plane' | 'ship', from, to, arcHeight
- *                – Großkreis, kein Routing
- * GpxSegment:    kind 'gpx', source, geometry, elevation?, times?, tolerance
- *
- * @typedef {'car' | 'motorcycle' | 'bicycle' | 'foot'} TravelMode
- * @typedef {object} RouteOptions
- * @property {boolean} avoidMotorways
- * @property {boolean} avoidTolls
- * @property {boolean} avoidFerries
- * @property {boolean} preferCurvy
+ * @typedef {object} Waypoint
+ * @property {string} id     stabil über Umsortieren und Speichern hinweg
+ * @property {string} name   darf leer sein
+ * @property {number} lon
+ * @property {number} lat
+ */
+
+/**
+ * @typedef {object} Leg
+ * @property {LegMode} mode                 'line' (M1) … 'car' | 'motorcycle' |
+ *                                          'bicycle' | 'foot' | 'plane' | 'ship' | 'gpx'
+ * @property {[number, number][] | null} geometry  berechneter Verlauf (ab M2);
+ *                                          null = gerade Verbindung der beiden Punkte
  */
 ```
 
-Zwei Entscheidungen dahinter:
+Drei Entscheidungen dahinter:
 
+- **Alle Operationen sind rein** und geben ein neues Projekt zurück. Das kostet
+  bei dieser Datenmenge nichts und ist die Grundlage für Undo/Redo (M9).
 - **Routen-Geometrie wird mitgespeichert.** Ein Projekt muss ohne erneute
   API-Anfrage wieder öffnen und exportieren können – sonst hängt ein fertiges
-  Video am Tageskontingent eines Gratis-Dienstes.
+  Video am Tageskontingent eines Gratis-Dienstes. Umgekehrt wird `geometry`
+  auf `null` gesetzt, sobald ein Punkt sich bewegt: Ein Verlauf, der zur alten
+  Lage gehört, wäre gelogen.
 - **Medien werden referenziert, nicht eingebettet**, solange man im Editor
   arbeitet (IndexedDB-Handle). Erst Export/Teilen packt Kopien ein.
 
@@ -213,12 +223,20 @@ Entscheidungen und Grenzen:
 
 ## 8. Speicherung
 
-- **Projekte:** IndexedDB, Autosave mit Debounce, Undo/Redo über
-  Store-Snapshots.
-- **Medien:** als Blob in IndexedDB, Thumbnails separat; nichts verlässt den
-  Browser.
-- **Austausch:** `.tmgz` (ZIP) exportieren/importieren – das ist auch das
-  Backup-Format.
+- **Projekte:** IndexedDB (`js/storage/db.js`, Datenbank
+  `travel-map-generator`), Autosave mit 400 ms Verzögerung und einem `flush`
+  beim Verlassen der Seite. Welches Projekt zuletzt offen war, steht in
+  `localStorage` unter `travel-map-generator.lastProject`. Undo/Redo über
+  Schnappschüsse kommt in M9 – der Store in `js/state/store.js` ist dafür
+  vorbereitet.
+- **Medien (ab M6):** als Blob in IndexedDB, Thumbnails separat; nichts
+  verlässt den Browser.
+- **Austausch:** `.tmgz` (`js/storage/archive.js`) – ein gewöhnliches ZIP mit
+  `project.json`, geschrieben und gelesen ohne Bibliothek. Das Komprimieren
+  übernimmt die native `CompressionStream('deflate-raw')`. Wer nachsehen will,
+  was gespeichert wurde, benennt die Datei in `.zip` um. Nicht unterstützt und
+  mit klarer Meldung abgelehnt: ZIP64, verschlüsselte Archive und andere
+  Verfahren als „gespeichert" und „deflate".
 - **Teilen (M8):** erzeugt einen Ordner mit `viewer.html`, `project.json` und
   verkleinerten Medien, den der Nutzer bewusst ins Repo legt. Erst dann ist
   etwas öffentlich.
