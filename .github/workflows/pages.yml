@@ -31,10 +31,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if gh api "repos/${{ github.repository }}/pages" --silent 2>/dev/null; then
+          # Die Antwort der API wird gezeigt statt verschluckt: "404" heißt, Pages
+          # ist nicht eingeschaltet; "403" hieße, der Token darf nicht nachsehen.
+          if response="$(gh api "repos/${{ github.repository }}/pages" 2>&1)"; then
             echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "Pages ist aktiv: $(echo "$response" | tr -d '\n' | cut -c1-300)"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "API-Antwort: $response"
             echo "::notice title=GitHub Pages ist noch nicht aktiviert::Settings → Pages → Build and deployment → Source: GitHub Actions wählen und diesen Workflow erneut starten."
           fi
       - uses: actions/checkout@v4
