@@ -531,5 +531,8 @@ Poster.api = (function () {
   return {
     search, searchITunes, fetchAlbumDetails, fetchDiscography, findCoverCandidates,
     findCoverViaMusicBrainz, Spotify, upgradeArtwork,
+    // request wird von tmdb.js mitgenutzt: der Wiederholversuch gegen
+    // abgebrochene Verbindungen soll für alle Quellen gelten.
+    request,
   };
 })();

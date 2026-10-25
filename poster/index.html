@@ -24,12 +24,16 @@
 
       <div class="block">
         <h2>Suche</h2>
+        <div class="mode-picker" id="mode-picker" role="radiogroup" aria-label="Art des Posters">
+          <label><input type="radio" name="mode" value="music" checked> Musik</label>
+          <label><input type="radio" name="mode" value="film"> Film</label>
+        </div>
         <form id="search-form" class="search-form">
           <div class="search-row">
             <input id="search-input" type="text" placeholder="Künstler, Album oder Song…" autocomplete="off">
             <button type="submit">Suchen</button>
           </div>
-          <div class="search-type" role="radiogroup" aria-label="Suchart">
+          <div class="search-type" id="search-entity-row" role="radiogroup" aria-label="Suchart">
             <label><input type="radio" name="search-entity" value="song" checked> Song</label>
             <label><input type="radio" name="search-entity" value="album"> Album</label>
             <label><input type="radio" name="search-entity" value="artist"> Künstler</label>
@@ -55,6 +59,21 @@
         <p id="spotify-status" class="status" aria-live="polite"></p>
       </details>
 
+      <details class="block" id="tmdb-block" data-kind="film" hidden>
+        <summary>TMDB-Zugang <span class="hint-inline">(nötig für Filme)</span></summary>
+        <p class="hint">Filmdaten und Plakate kommen von <a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener">TMDB</a>; der Schlüssel ist für private Nutzung kostenlos. Apple hat seine Filmsuche abgeschaltet, und eine schlüsselfreie Quelle für Plakate gibt es nicht. Der Schlüssel bleibt ausschließlich in diesem Browser und wird nur direkt an TMDB gesendet.</p>
+        <label class="field">API-Schlüssel (v3)<input id="tmdb-key" type="password" autocomplete="off" spellcheck="false"></label>
+        <div class="field-row">
+          <button id="tmdb-save" type="button">Speichern &amp; prüfen</button>
+          <button id="tmdb-clear" type="button" class="secondary">Entfernen</button>
+        </div>
+        <p id="tmdb-status" class="status" aria-live="polite"></p>
+        <p class="hint tmdb-credit">
+          <img src="img/tmdb.svg" alt="TMDB" class="tmdb-logo">
+          Dieses Werkzeug nutzt TMDB und die TMDB-APIs, ist aber von TMDB nicht unterstützt, zertifiziert oder anderweitig freigegeben.
+        </p>
+      </details>
+
       <details class="block" id="diag-block">
         <summary>Diagnose <span class="hint-inline">(bei Problemen)</span></summary>
         <p class="hint">Protokoll dieser Sitzung. Bleibt auf dem Gerät und wird nirgendwohin gesendet — bei einem Fehler bitte kopieren und schicken.</p>
@@ -72,36 +91,47 @@
         <div class="field">
           <span class="field-label">Stil</span>
           <div class="style-picker" id="style-picker">
-            <label class="style-option"><input type="radio" name="style" value="tracklist" checked><span class="swatch swatch-tracklist"></span>Tracklist-Klassiker</label>
-            <label class="style-option"><input type="radio" name="style" value="nowplaying"><span class="swatch swatch-nowplaying"></span>Now Playing</label>
-            <label class="style-option"><input type="radio" name="style" value="swiss"><span class="swatch swatch-swiss"></span>Swiss / Editorial</label>
-            <label class="style-option"><input type="radio" name="style" value="pantone"><span class="swatch swatch-pantone"></span>Pantone-Karte</label>
-            <label class="style-option"><input type="radio" name="style" value="linernotes"><span class="swatch swatch-linernotes"></span>Liner Notes</label>
-            <label class="style-option"><input type="radio" name="style" value="vinylsleeve"><span class="swatch swatch-vinylsleeve"></span>Vinyl-Hülle</label>
-            <label class="style-option"><input type="radio" name="style" value="minimal"><span class="swatch swatch-minimal"></span>Minimalistisch</label>
-            <label class="style-option"><input type="radio" name="style" value="vintage"><span class="swatch swatch-vintage"></span>Vintage / Vinyl</label>
-            <label class="style-option"><input type="radio" name="style" value="grunge"><span class="swatch swatch-grunge"></span>Grunge / Flyer</label>
+            <label class="style-option" data-kind="music"><input type="radio" name="style" value="tracklist" checked><span class="swatch swatch-tracklist"></span>Tracklist-Klassiker</label>
+            <label class="style-option" data-kind="music"><input type="radio" name="style" value="nowplaying"><span class="swatch swatch-nowplaying"></span>Now Playing</label>
+            <label class="style-option" data-kind="music"><input type="radio" name="style" value="swiss"><span class="swatch swatch-swiss"></span>Swiss / Editorial</label>
+            <label class="style-option" data-kind="music"><input type="radio" name="style" value="pantone"><span class="swatch swatch-pantone"></span>Pantone-Karte</label>
+            <label class="style-option" data-kind="music"><input type="radio" name="style" value="linernotes"><span class="swatch swatch-linernotes"></span>Liner Notes</label>
+            <label class="style-option" data-kind="music"><input type="radio" name="style" value="vinylsleeve"><span class="swatch swatch-vinylsleeve"></span>Vinyl-Hülle</label>
+            <label class="style-option" data-kind="music"><input type="radio" name="style" value="minimal"><span class="swatch swatch-minimal"></span>Minimalistisch</label>
+            <label class="style-option" data-kind="music"><input type="radio" name="style" value="vintage"><span class="swatch swatch-vintage"></span>Vintage / Vinyl</label>
+            <label class="style-option" data-kind="music"><input type="radio" name="style" value="grunge"><span class="swatch swatch-grunge"></span>Grunge / Flyer</label>
+            <label class="style-option" data-kind="film" hidden><input type="radio" name="style" value="filmkeyart"><span class="swatch swatch-filmkeyart"></span>Key Art</label>
+            <label class="style-option" data-kind="film" hidden><input type="radio" name="style" value="filmminimal"><span class="swatch swatch-filmminimal"></span>Minimal</label>
+            <label class="style-option" data-kind="film" hidden><input type="radio" name="style" value="filmticket"><span class="swatch swatch-filmticket"></span>Kinoprogramm</label>
           </div>
         </div>
 
         <div class="field-row">
-          <label class="field">Titel<input id="field-title" type="text"></label>
-          <label class="field">Künstler<input id="field-artist" type="text"></label>
+          <label class="field"><span data-l-music="Titel" data-l-film="Filmtitel">Titel</span><input id="field-title" type="text"></label>
+          <label class="field"><span data-l-music="Künstler" data-l-film="Regie">Künstler</span><input id="field-artist" type="text"></label>
         </div>
-        <label class="field">Zusatzzeile (Album · Jahr)<input id="field-subtitle" type="text"></label>
+        <label class="field"><span data-l-music="Zusatzzeile (Album · Jahr)" data-l-film="Tagline">Zusatzzeile (Album · Jahr)</span><input id="field-subtitle" type="text"></label>
 
         <div class="field">
-          <span class="field-label">Tracklist <span class="hint-inline">(eine Zeile je Titel)</span></span>
+          <span class="field-label"><span data-l-music="Tracklist" data-l-film="Besetzung">Tracklist</span> <span class="hint-inline">(eine Zeile je Eintrag)</span></span>
           <textarea id="field-tracks" rows="5" placeholder="Wird beim Auswählen automatisch geladen — hier frei editierbar."></textarea>
           <p id="tracks-status" class="status" aria-live="polite"></p>
         </div>
 
-        <div class="field-row">
-          <label class="field">Erschienen<input id="field-release" type="text"></label>
-          <label class="field">Länge<input id="field-length" type="text"></label>
+        <div class="field" data-kind="film" hidden>
+          <span class="field-label">Credits <span class="hint-inline">(je Zeile „Rolle: Namen")</span></span>
+          <textarea id="field-credits" rows="5" placeholder="Regie: …&#10;Drehbuch: …&#10;Kamera: …"></textarea>
         </div>
-        <label class="field">Label<input id="field-label" type="text"></label>
-        <label class="check-field"><input id="field-explicit" type="checkbox"> Explicit-Kennzeichen aufs Cover</label>
+
+        <div class="field-row">
+          <label class="field"><span data-l-music="Erschienen" data-l-film="Kinostart">Erschienen</span><input id="field-release" type="text"></label>
+          <label class="field"><span data-l-music="Länge" data-l-film="Laufzeit">Länge</span><input id="field-length" type="text"></label>
+        </div>
+        <div class="field-row">
+          <label class="field"><span data-l-music="Label" data-l-film="Studio">Label</span><input id="field-label" type="text"></label>
+          <label class="field" data-kind="film" hidden>FSK<input id="field-fsk" type="text" placeholder="12"></label>
+        </div>
+        <label class="check-field" data-kind="music"><input id="field-explicit" type="checkbox"> Explicit-Kennzeichen aufs Cover</label>
 
         <div class="field">
           <span class="field-label">Cover</span>
@@ -137,11 +167,15 @@
         </div>
 
         <div class="field">
-          <span class="field-label">Größe <span class="hint-inline">(300 dpi, druckreif)</span></span>
+          <span class="field-label">Größe <span class="hint-inline">(druckreif; Auflösung je Format, siehe unten)</span></span>
           <div class="size-picker" id="size-picker">
-            <label><input type="radio" name="size" value="A4" checked>A4<small>21 × 29,7 cm</small></label>
-            <label><input type="radio" name="size" value="A3">A3<small>29,7 × 42 cm</small></label>
-            <label><input type="radio" name="size" value="A2">A2<small>42 × 59,4 cm</small></label>
+            <label><input type="radio" name="size" value="A4" checked>A4<small>21 × 29,7 cm · 300 dpi</small></label>
+            <label><input type="radio" name="size" value="A3">A3<small>29,7 × 42 cm · 300 dpi</small></label>
+            <label><input type="radio" name="size" value="A2">A2<small>42 × 59,4 cm · 300 dpi</small></label>
+            <label><input type="radio" name="size" value="A1">A1<small>59,4 × 84,1 cm · 210 dpi</small></label>
+            <label><input type="radio" name="size" value="A0">A0<small>84,1 × 118,9 cm · 150 dpi</small></label>
+            <label><input type="radio" name="size" value="P50x70">50 × 70<small>Plakatmaß · 250 dpi</small></label>
+            <label><input type="radio" name="size" value="P70x100">70 × 100<small>Kinoplakat · 170 dpi</small></label>
           </div>
         </div>
 
@@ -190,6 +224,10 @@
 <script src="js/upscale.js"></script>
 <script src="js/parts.js"></script>
 <script src="js/api.js"></script>
+<script src="js/tmdb.js"></script>
+<script src="js/styles/filmkeyart.js"></script>
+<script src="js/styles/filmminimal.js"></script>
+<script src="js/styles/filmticket.js"></script>
 <script src="js/styles/tracklist.js"></script>
 <script src="js/styles/nowplaying.js"></script>
 <script src="js/styles/swiss.js"></script>

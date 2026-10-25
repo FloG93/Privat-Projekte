@@ -41,6 +41,20 @@
   src:url('fonts/anton-regular.woff2') format('woff2');
 }
 @font-face{
+  font-family:'Saira Extra Condensed';
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+  src:url('fonts/saira-extracondensed-400.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Saira Extra Condensed';
+  font-style:normal;
+  font-weight:600;
+  font-display:swap;
+  src:url('fonts/saira-extracondensed-600.woff2') format('woff2');
+}
+@font-face{
   font-family:'Special Elite';
   font-style:normal;
   font-weight:400;
@@ -174,6 +188,48 @@ details.block summary{
   margin:8px 0;
 }
 .hint a{color:var(--accent);}
+
+/* Modus-Umschalter: Musik oder Film — bestimmt Suche, Felder und Stilauswahl. */
+.mode-picker{
+  display:flex;
+  gap:6px;
+  margin-bottom:10px;
+}
+.mode-picker label{
+  flex:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border:1px solid var(--border);
+  background:var(--panel-2);
+  border-radius:8px;
+  padding:8px 10px;
+  font-size:0.85rem;
+  font-weight:600;
+  cursor:pointer;
+}
+.mode-picker label:has(input:checked){
+  border-color:var(--accent);
+  color:var(--accent);
+  box-shadow:0 0 0 1px var(--accent) inset;
+}
+
+.tmdb-credit{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:0.72rem;
+  line-height:1.35;
+  border-top:1px solid var(--border);
+  padding-top:10px;
+  margin-top:12px;
+}
+.tmdb-logo{
+  width:70px;
+  height:auto;
+  flex-shrink:0;
+}
 
 .search-row{display:flex;gap:8px;}
 .search-row input{flex:1;}
@@ -377,6 +433,9 @@ button:disabled{opacity:0.5;cursor:not-allowed;}
 .swatch-pantone{background:linear-gradient(180deg,#ef8354 50%,#7d966f 50%);}
 .swatch-linernotes{background:linear-gradient(180deg,#fff 55%,#444 55%);}
 .swatch-vinylsleeve{background:radial-gradient(circle at 70% 50%,#17151a 38%,#e8e2f0 39%);}
+.swatch-filmkeyart{background:linear-gradient(180deg,#6b4a86 55%,#111 55%);}
+.swatch-filmminimal{background:linear-gradient(135deg,#1b2033 55%,#e4dfd6 55%);}
+.swatch-filmticket{background:linear-gradient(180deg,#f4f1e8 48%,#17171a 52%);}
 
 .cover-row{display:flex;align-items:center;gap:12px;}
 .cover-thumb{

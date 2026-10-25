@@ -3,6 +3,12 @@ name: GitHub Pages
 # Veröffentlicht die Übersichtsseite und alle Projekte bei jedem Push auf den
 # Standard-Branch: index.html → /Privat-Projekte/, jeder Ordner mit einer
 # index.html (z. B. Travel-Map-Generator/) → /Privat-Projekte/<Ordner>/.
+#
+# Ausnahme poster/: Der Poster-Generator hat zwei Kanäle. /poster/ ist die
+# freigegebene Fassung, ausgepackt aus dem in poster/release.json eingetragenen
+# Commit, /poster/beta/ der aktuelle Stand. Freigeben heißt, diesen Zeiger zu
+# ändern – die Dateien liegen nur einmal im Repo. Der Commit muss deshalb in der
+# Historie bleiben: nicht zusammenfassen (squash), nicht umschreiben (rebase).
 # Einmalig nötig: Settings → Pages → Build and deployment → Source: "GitHub Actions".
 
 on:
@@ -41,8 +47,11 @@ jobs:
             echo "API-Antwort: $response"
             echo "::notice title=GitHub Pages ist noch nicht aktiviert::Settings → Pages → Build and deployment → Source: GitHub Actions wählen und diesen Workflow erneut starten."
           fi
+      # Volle Historie: der Release-Kanal des Posters wird aus einem Commit gebaut.
       - uses: actions/checkout@v4
         if: steps.pages.outputs.enabled == 'true'
+        with:
+          fetch-depth: 0
       - name: Seite zusammenstellen
         if: steps.pages.outputs.enabled == 'true'
         run: |
@@ -54,12 +63,40 @@ jobs:
           for dir in */; do
             project="${dir%/}"
             [ "$project" != _site ] && [ "$project" != shared ] && [ -f "$project/index.html" ] || continue
+            # poster/ hat zwei Kanäle und wird weiter unten zusammengesetzt.
+            [ "$project" != poster ] || continue
             # Nicht auf die Seite: Tests, Doku-Bilder, Anleitungen, Typen.
             cp -r "$project" "_site/$project"
             rm -rf "_site/$project/tests" "_site/$project/docs"
             rm -f "_site/$project"/*.md "_site/$project"/vendor/*/*.d.mts "_site/$project"/vendor/*/README.md
             echo "Veröffentlicht: /$project/"
           done
+
+          # Poster-Generator: Release-Kanal unter /poster/, Beta unter /poster/beta/.
+          if [ -f poster/index.html ]; then
+            write_build() { # $1 Ordner, $2 Kanal, $3 Version, $4 Commit
+              printf 'window.Poster = window.Poster || {};\nPoster.BUILD = { channel: "%s", version: "%s", commit: "%s", date: "%s" };\n' \
+                "$2" "$3" "$4" "$(date -u +%F)" > "$1/build.js"
+            }
+            RELEASE_COMMIT="$(jq -r '.commit // empty' poster/release.json)"
+            RELEASE_VERSION="$(jq -r '.version // empty' poster/release.json)"
+            mkdir -p _site/poster
+            if [ -n "$RELEASE_COMMIT" ] && git cat-file -e "$RELEASE_COMMIT^{commit}" 2>/dev/null; then
+              git archive "$RELEASE_COMMIT" poster | tar -x -C "$RUNNER_TEMP"
+              cp -r "$RUNNER_TEMP/poster/." _site/poster/
+              write_build _site/poster release "$RELEASE_VERSION" "$(git rev-parse --short "$RELEASE_COMMIT")"
+              echo "Poster-Release aus $RELEASE_COMMIT ($RELEASE_VERSION)"
+            else
+              # Besser eine ungekennzeichnete Fassung als eine 404.
+              cp -r poster/. _site/poster/
+              write_build _site/poster release "$(jq -r .version poster/version.json) (ohne Freigabe)" "$(git rev-parse --short HEAD)"
+              echo "Release-Zeiger fehlt oder ist unbekannt – nehme den aktuellen Stand"
+            fi
+            mkdir -p _site/poster/beta
+            cp -r poster/. _site/poster/beta/
+            write_build _site/poster/beta beta "$(jq -r .version poster/version.json)" "$(git rev-parse --short HEAD)"
+            echo "Veröffentlicht: /poster/ und /poster/beta/"
+          fi
       - uses: actions/configure-pages@v5
         if: steps.pages.outputs.enabled == 'true'
       - uses: actions/upload-pages-artifact@v3

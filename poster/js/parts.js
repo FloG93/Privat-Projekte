@@ -180,8 +180,135 @@ Poster.parts = (function () {
     ctx.restore();
   }
 
+  // --- Filmplakat-Bausteine ---------------------------------------------------
+
+  // Der Billing Block: der ultraschmale Fußtext echter Filmplakate. Die Segmente
+  // werden zu einem Fluss verkettet und wie Text umbrochen, damit die Zeilen
+  // gleichmäßig füllen — Zeile für Zeile zu setzen ergibt sonst Löcher.
+  function billingBlock(ctx, segments, x, y, w, opts) {
+    opts = opts || {};
+    const parts = segments
+      .filter((s) => s.names && s.names.length)
+      .map((s) => s.label.toUpperCase() + '  ' + s.names.join(', ').toUpperCase());
+    if (!parts.length) return 0;
+
+    const size = opts.size || w * 0.022;
+    const gap = '      ';
+    ctx.save();
+    ctx.font = '400 ' + size + 'px "Saira Extra Condensed"';
+    ctx.fillStyle = opts.color || '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+
+    const lines = [];
+    let line = '';
+    parts.forEach((part) => {
+      const test = line ? line + gap + part : part;
+      if (line && ctx.measureText(test).width > w) {
+        lines.push(line);
+        line = part;
+      } else {
+        line = test;
+      }
+    });
+    if (line) lines.push(line);
+
+    // Die Zeilenzahl steht erst nach dem Umbruch fest. Layouts, die von unten
+    // nach oben aufbauen, geben deshalb `bottom` statt `y` — sonst müssten sie
+    // die Höhe raten und der Block läge unter dem nächsten Element.
+    const lineH = size * 1.16;
+    const top = opts.bottom !== undefined ? opts.bottom - lines.length * lineH : y;
+    lines.forEach((l, i) => ctx.fillText(truncate(ctx, l, w), x + w / 2, top + (i + 1) * lineH));
+    ctx.restore();
+    return lines.length * lineH;
+  }
+
+  // Die Darstellerzeile über dem Titel, gesperrt und schmal gesetzt.
+  function castRow(ctx, names, x, y, w, opts) {
+    opts = opts || {};
+    if (!names || !names.length) return 0;
+    let size = opts.size || w * 0.035;
+    const family = '"Saira Extra Condensed"';
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = opts.color || '#ffffff';
+    let text = names.slice(0, opts.max || 5).join('   ·   ').toUpperCase();
+    ctx.font = '600 ' + size + 'px ' + family;
+    while (ctx.measureText(text).width > w && size > w * 0.016) {
+      size *= 0.95;
+      ctx.font = '600 ' + size + 'px ' + family;
+    }
+    ctx.fillText(text, x + w / 2, y);
+    ctx.restore();
+    return size * 1.3;
+  }
+
+  // Altersfreigabe als schlichtes Kästchen. Die FSK-Logos sind Marken, deshalb
+  // nachgezeichnet wie das Explicit-Kennzeichen.
+  function fskBadge(ctx, x, y, size, cert) {
+    if (!cert) return 0;
+    ctx.save();
+    ctx.fillStyle = '#ffffff';
+    U.roundRect(ctx, x, y, size, size, size * 0.14);
+    ctx.fill();
+    ctx.fillStyle = '#111114';
+    ctx.lineWidth = size * 0.07;
+    ctx.strokeStyle = '#111114';
+    U.roundRect(ctx, x + size * 0.05, y + size * 0.05, size * 0.9, size * 0.9, size * 0.1);
+    ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const label = String(cert);
+    let fs = size * (label.length > 2 ? 0.34 : 0.46);
+    ctx.font = '600 ' + fs + 'px "Saira Extra Condensed"';
+    ctx.fillText(label, x + size / 2, y + size * 0.42);
+    ctx.font = '400 ' + size * 0.13 + 'px "Saira Extra Condensed"';
+    ctx.fillText('FREIGEGEBEN AB', x + size / 2, y + size * 0.76);
+    ctx.restore();
+    return size;
+  }
+
+  // Perforationslinie fürs Ticket-Layout: Stanzlöcher plus gestrichelte Linie.
+  function perforation(ctx, x, y, w, opts) {
+    opts = opts || {};
+    const r = opts.radius || w * 0.022;
+    const bg = opts.notchColor || '#0a0c10';
+    ctx.save();
+    ctx.strokeStyle = opts.color || 'rgba(17,17,20,0.35)';
+    ctx.lineWidth = Math.max(1, w * 0.003);
+    ctx.setLineDash([w * 0.018, w * 0.014]);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = bg;
+    [x, x + w].forEach((cx) => {
+      ctx.beginPath();
+      ctx.arc(cx, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+
+  // Strichcode-Streifen, rein dekorativ — die Breiten kommen aus dem Titel,
+  // damit derselbe Film immer dasselbe Muster bekommt.
+  function barcode(ctx, x, y, w, h, seed, color) {
+    const rand = U.seededRandom('barcode-' + seed);
+    ctx.save();
+    ctx.fillStyle = color || '#111114';
+    let px = x;
+    while (px < x + w) {
+      const bw = w * (0.004 + rand() * 0.012);
+      if (rand() > 0.35) ctx.fillRect(px, y, bw, h);
+      px += bw + w * 0.004;
+    }
+    ctx.restore();
+  }
+
   return {
     truncate, tracklist, paletteStrip, paletteColumn, meta, explicitBadge,
     progressBar, playerControls, vinylDisc, shadowed,
+    billingBlock, castRow, fskBadge, perforation, barcode,
   };
 })();

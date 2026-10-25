@@ -8,6 +8,8 @@
     searchStatus: document.getElementById('search-status'),
     searchResults: document.getElementById('search-results'),
     resultsBack: document.getElementById('results-back'),
+    modePicker: document.getElementById('mode-picker'),
+    entityRow: document.getElementById('search-entity-row'),
     manualBtn: document.getElementById('manual-btn'),
 
     spotifyId: document.getElementById('spotify-id'),
@@ -27,6 +29,13 @@
     fieldLength: document.getElementById('field-length'),
     fieldLabel: document.getElementById('field-label'),
     fieldExplicit: document.getElementById('field-explicit'),
+    fieldCredits: document.getElementById('field-credits'),
+    fieldFsk: document.getElementById('field-fsk'),
+    tmdbBlock: document.getElementById('tmdb-block'),
+    tmdbKey: document.getElementById('tmdb-key'),
+    tmdbSave: document.getElementById('tmdb-save'),
+    tmdbClear: document.getElementById('tmdb-clear'),
+    tmdbStatus: document.getElementById('tmdb-status'),
     coverPreview: document.getElementById('cover-preview'),
     coverUpload: document.getElementById('cover-upload'),
     coverMeta: document.getElementById('cover-meta'),
@@ -50,10 +59,21 @@
     toggleBtns: document.querySelectorAll('.toggle-btn'),
   };
 
+  // Die Vorschau ist so breit wie eh und je, ihre Höhe folgt aber dem
+  // Seitenverhältnis des gewählten Formats: die A-Reihe hat 1:1,414, die
+  // Plakatmaße 1:1,40 und 1:1,43.
   const PREVIEW_W = 720;
-  const PREVIEW_H = Math.round(PREVIEW_W * Math.SQRT2);
+  function previewHeight() {
+    return Math.round(PREVIEW_W * Poster.exportPoster.ratio(model.size));
+  }
 
   const model = {
+    kind: 'music',
+    // Filmfelder: Regie und Besetzung liegen getrennt, weil das Plakat sie an
+    // verschiedenen Stellen setzt; filmCredits ist der Billing Block.
+    tagline: '', director: '', cast: [], filmCredits: [],
+    runtimeText: '', genresText: '', certification: '', studio: '',
+    releaseLine: '', titleLogoImg: null, movieId: null,
     title: '', artist: '', subtitle: '', albumName: '', duration: '',
     tracks: [], releaseDate: '', label: '', totalLength: '', year: '',
     showExplicit: false,
@@ -99,6 +119,7 @@
       '400 16px "Vollkorn"', '700 16px "Vollkorn"',
       '400 16px "Anton"',
       '400 16px "Special Elite"',
+      '400 16px "Saira Extra Condensed"', '600 16px "Saira Extra Condensed"',
     ];
     await Promise.all(specs.map((s) => document.fonts.load(s).catch(() => {})));
     try { await document.fonts.ready; } catch (e) { /* older browsers */ }
@@ -206,6 +227,80 @@
     });
   }
 
+  // --- Modus: Musik oder Film -------------------------------------------------
+
+  // Statt einer zweiten Oberfläche schaltet der Modus dieselbe um: Felder
+  // bekommen andere Beschriftungen, die Stilauswahl zeigt nur die passenden
+  // Layouts, und die filmspezifischen Blöcke tauchen auf.
+  const MODE_STYLE = { music: 'tracklist', film: 'filmkeyart' };
+
+  function applyMode(kind) {
+    model.kind = kind;
+
+    document.querySelectorAll('[data-kind]').forEach((el) => {
+      el.hidden = el.dataset.kind !== kind;
+    });
+    document.querySelectorAll('[data-l-music]').forEach((el) => {
+      el.textContent = kind === 'film' ? el.dataset.lFilm : el.dataset.lMusic;
+    });
+
+    if (els.entityRow) els.entityRow.hidden = kind === 'film';
+    if (els.searchInput) {
+      els.searchInput.placeholder = kind === 'film'
+        ? 'Filmtitel…' : 'Künstler, Album oder Song…';
+    }
+
+    // Ein Musikstil kann kein Filmplakat zeichnen und umgekehrt.
+    const current = Poster.styles[model.style];
+    const fits = current && (current.kinds || ['music']).indexOf(kind) !== -1;
+    if (!fits) {
+      model.style = MODE_STYLE[kind];
+      const radio = els.stylePicker.querySelector('input[value="' + model.style + '"]');
+      if (radio) radio.checked = true;
+    }
+
+    els.searchResults.innerHTML = '';
+    els.resultsBack.hidden = true;
+    setStatus(els.searchStatus, '');
+    updateTrackHint();
+    scheduleRender();
+  }
+
+  on(els.modePicker, 'change', (e) => {
+    if (e.target.name !== 'mode') return;
+    applyMode(e.target.value);
+  });
+
+  // --- TMDB-Zugang ------------------------------------------------------------
+
+  (function initTmdbPanel() {
+    if (!els.tmdbKey) return;
+    if (Poster.tmdb.isConfigured()) setStatus(els.tmdbStatus, 'Schlüssel hinterlegt.');
+  })();
+
+  on(els.tmdbSave, 'click', async () => {
+    const key = (els.tmdbKey.value || '').trim();
+    if (!key) {
+      setStatus(els.tmdbStatus, 'Bitte den API-Schlüssel eintragen.', 'error');
+      return;
+    }
+    Poster.tmdb.setKey(key);
+    setStatus(els.tmdbStatus, 'Prüfe…');
+    try {
+      await Poster.tmdb.search('Test');
+      setStatus(els.tmdbStatus, 'Schlüssel akzeptiert — Filmsuche steht bereit.');
+      els.tmdbKey.value = '';
+    } catch (e) {
+      setStatus(els.tmdbStatus, errorText(e), 'error');
+    }
+  });
+
+  on(els.tmdbClear, 'click', () => {
+    Poster.tmdb.clearKey();
+    els.tmdbKey.value = '';
+    setStatus(els.tmdbStatus, 'Schlüssel entfernt.');
+  });
+
   // --- Search -------------------------------------------------------------
 
   function searchEntity() {
@@ -222,6 +317,17 @@
     els.resultsBack.hidden = true;
     artistResults = null;
     try {
+      if (model.kind === 'film') {
+        if (!Poster.tmdb.isConfigured()) {
+          setStatus(els.searchStatus, 'Für Filme fehlt der TMDB-Schlüssel — siehe „TMDB-Zugang".', 'error');
+          if (els.tmdbBlock) els.tmdbBlock.open = true;
+          return;
+        }
+        const films = await Poster.tmdb.search(term.trim());
+        renderResults(films);
+        setStatus(els.searchStatus, films.length ? films.length + ' Filme (TMDB)' : 'Keine Treffer.');
+        return;
+      }
       const { results, source } = await api.search(term.trim(), searchEntity());
       renderResults(results);
       if (searchEntity() === 'artist') artistResults = results;
@@ -270,6 +376,10 @@
       + '<path d="M6.5 35.5c0-7.4 6-11.4 13.5-11.4s13.5 4 13.5 11.4z"/></svg>',
     album: '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="12.5" fill="none"'
       + ' stroke="currentColor" stroke-width="2.6"/><circle cx="20" cy="20" r="3.1"/></svg>',
+    movie: '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="7" y="9" width="26" height="22" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.4"/>'
+      + '<path d="M12 9v22M28 9v22" stroke="currentColor" stroke-width="2.2"/>'
+      + '<circle cx="9.6" cy="13" r="1.3"/><circle cx="9.6" cy="20" r="1.3"/><circle cx="9.6" cy="27" r="1.3"/>'
+      + '<circle cx="30.4" cy="13" r="1.3"/><circle cx="30.4" cy="20" r="1.3"/><circle cx="30.4" cy="27" r="1.3"/></svg>',
     track: '<svg viewBox="0 0 40 40" aria-hidden="true"><path d="M17.5 9.5L30 6.8v4.1l-12.5 2.7z"/>'
       + '<rect x="17.5" y="9.5" width="2.4" height="17.5"/><rect x="27.6" y="6.8" width="2.4" height="14.8"/>'
       + '<ellipse cx="14.5" cy="27.6" rx="5.2" ry="4.3"/><ellipse cx="24.6" cy="24.9" rx="5.2" ry="4.3"/></svg>',
@@ -305,7 +415,10 @@
       const sub = document.createElement('span');
       // Zweite Zeile trägt das, woran man die richtige Ausgabe erkennt: bei
       // Songs das Album, bei Alben Jahr und Titelzahl, bei Künstlern das Genre.
-      if (r.type === 'artist') {
+      if (r.type === 'movie') {
+        sub.textContent = [r.year, r.originalTitle !== r.title ? r.originalTitle : '']
+          .filter(Boolean).join(' · ');
+      } else if (r.type === 'artist') {
         sub.textContent = r.genre || 'Künstler';
       } else if (r.type === 'album') {
         sub.textContent = [r.artist, r.year, r.trackCount ? r.trackCount + ' Titel' : '']
@@ -317,7 +430,9 @@
 
       const badge = document.createElement('span');
       badge.className = 'result-badge';
-      badge.textContent = r.type === 'artist' ? 'Alben ›' : r.type === 'album' ? 'Album' : 'Song';
+      badge.textContent = r.type === 'movie' ? 'Film'
+        : r.type === 'artist' ? 'Alben ›'
+        : r.type === 'album' ? 'Album' : 'Song';
 
       li.append(thumb, text, badge);
       const open = () => (r.type === 'artist' ? showDiscography(r) : selectResult(r));
@@ -330,6 +445,7 @@
   }
 
   async function selectResult(r) {
+    if (r.type === 'movie') return selectMovie(r);
     model.title = r.title || '';
     model.artist = r.artist || '';
     model.albumName = r.albumName || r.title || '';
@@ -358,6 +474,83 @@
     }
     updateCodeOptionsUI();
     prepareCodeAssets();
+  }
+
+  // Der Filmtreffer trägt nur Titel, Jahr und Plakat. Stab, Laufzeit, Freigabe
+  // und Titelschriftzug holt ein zweiter Aufruf nach.
+  async function selectMovie(r) {
+    const gen = ++detailGeneration;
+    model.movieId = r.movieId;
+    model.title = r.title || '';
+    model.year = r.year || '';
+    model.subtitle = '';
+    model.tagline = '';
+    model.director = '';
+    model.cast = [];
+    model.filmCredits = [];
+    model.runtimeText = '';
+    model.genresText = '';
+    model.certification = '';
+    model.studio = '';
+    model.releaseDate = U.formatDateDE(r.releaseDate) || r.year || '';
+    model.releaseLine = '';
+    model.titleLogoImg = null;
+    model.tracks = [];
+    model.spotifyUri = null;
+    model.appleUrl = null;
+
+    syncFieldsFromModel();
+    els.editorFields.hidden = false;
+    await loadCover(r);
+
+    setStatus(els.tracksStatus, 'Filmdaten werden geladen…');
+    try {
+      const d = await Poster.tmdb.details(r.movieId);
+      if (gen !== detailGeneration) return;
+
+      model.title = d.title || model.title;
+      model.tagline = d.tagline;
+      model.subtitle = d.tagline;
+      model.director = d.directors.join(', ');
+      model.artist = model.director;
+      model.cast = d.cast.slice(0, 8);
+      model.runtimeText = d.runtime ? d.runtime + ' Min.' : '';
+      model.genresText = d.genres.slice(0, 3).join(' · ');
+      model.certification = d.certification;
+      model.studio = d.studios[0] || '';
+      model.releaseDate = U.formatDateDE(d.releaseDate) || model.releaseDate;
+      model.releaseLine = model.releaseDate ? 'Im Kino ab ' + model.releaseDate : '';
+      model.year = (d.releaseDate || '').slice(0, 4) || model.year;
+      model.filmCredits = [
+        { label: 'Regie', names: d.directors },
+        { label: 'Drehbuch', names: d.writers },
+        { label: 'Kamera', names: d.camera },
+        { label: 'Schnitt', names: d.editors },
+        { label: 'Musik', names: d.music },
+        { label: 'Produktion', names: d.producers },
+      ].filter((c) => c.names.length);
+
+      // Der Originalschriftzug ist ein PNG mit Transparenz — wenn er sich nicht
+      // laden lässt, setzt der Stil den Titel einfach als Schrift.
+      if (d.titleLogoUrl) {
+        U.loadImage(d.titleLogoUrl, 'anonymous')
+          .then((img) => {
+            if (gen !== detailGeneration) return;
+            model.titleLogoImg = img;
+            setStatus(els.tracksStatus, 'Filmdaten geladen — mit Original-Titelschriftzug.');
+            scheduleRender();
+          })
+          .catch(() => {});
+      }
+
+      syncFieldsFromModel();
+      setStatus(els.tracksStatus, 'Filmdaten geladen.');
+      prepareCodeAssets();
+      scheduleRender();
+    } catch (e) {
+      if (gen !== detailGeneration) return;
+      setStatus(els.tracksStatus, 'Filmdaten nicht ladbar: ' + errorText(e), 'error');
+    }
   }
 
   // Tracklist und Albumangaben kommen erst nach der Auswahl — die Suche liefert sie nicht mit.
@@ -537,6 +730,16 @@
   });
 
   on(els.manualBtn, 'click', () => {
+    if (model.kind === 'film') {
+      model.title = model.title || 'Filmtitel';
+      model.director = model.director || 'Regie';
+      model.tagline = model.tagline || '';
+      if (!model.coverImg) applyCover(placeholderCover());
+      syncFieldsFromModel();
+      els.editorFields.hidden = false;
+      prepareCodeAssets();
+      return;
+    }
     model.title = model.title || 'Songtitel';
     model.artist = model.artist || 'Künstler:in';
     model.subtitle = model.subtitle || '';
@@ -551,30 +754,69 @@
   // --- Editor fields --------------------------------------------------------
 
   function syncFieldsFromModel() {
+    const film = model.kind === 'film';
     els.fieldTitle.value = model.title;
-    els.fieldArtist.value = model.artist;
-    els.fieldSubtitle.value = model.subtitle;
-    els.fieldTracks.value = model.tracks.join('\n');
+    els.fieldArtist.value = film ? model.director : model.artist;
+    els.fieldSubtitle.value = film ? model.tagline : model.subtitle;
+    els.fieldTracks.value = (film ? model.cast : model.tracks).join('\n');
     els.fieldRelease.value = model.releaseDate;
-    els.fieldLength.value = model.totalLength || model.duration;
-    els.fieldLabel.value = model.label;
+    els.fieldLength.value = film ? model.runtimeText : (model.totalLength || model.duration);
+    els.fieldLabel.value = film ? model.studio : model.label;
     els.fieldExplicit.checked = model.showExplicit;
+    if (els.fieldFsk) els.fieldFsk.value = model.certification;
+    if (els.fieldCredits) {
+      els.fieldCredits.value = (model.filmCredits || [])
+        .map((c) => c.label + ': ' + c.names.join(', ')).join('\n');
+    }
     [...els.sizePicker.querySelectorAll('input')].forEach((i) => { i.checked = i.value === model.size; });
     [...els.stylePicker.querySelectorAll('input')].forEach((i) => { i.checked = i.value === model.style; });
   }
 
+  const film = () => model.kind === 'film';
+
   on(els.fieldTitle, 'input', () => { model.title = els.fieldTitle.value; scheduleRender(); });
-  on(els.fieldArtist, 'input', () => { model.artist = els.fieldArtist.value; scheduleRender(); });
-  on(els.fieldSubtitle, 'input', () => { model.subtitle = els.fieldSubtitle.value; scheduleRender(); });
-  on(els.fieldRelease, 'input', () => { model.releaseDate = els.fieldRelease.value; scheduleRender(); });
-  on(els.fieldLength, 'input', () => { model.totalLength = els.fieldLength.value; scheduleRender(); });
-  on(els.fieldLabel, 'input', () => { model.label = els.fieldLabel.value; scheduleRender(); });
+  on(els.fieldArtist, 'input', () => {
+    if (film()) model.director = els.fieldArtist.value; else model.artist = els.fieldArtist.value;
+    scheduleRender();
+  });
+  on(els.fieldSubtitle, 'input', () => {
+    if (film()) model.tagline = els.fieldSubtitle.value; else model.subtitle = els.fieldSubtitle.value;
+    scheduleRender();
+  });
+  on(els.fieldRelease, 'input', () => {
+    model.releaseDate = els.fieldRelease.value;
+    if (film()) model.releaseLine = model.releaseDate ? 'Im Kino ab ' + model.releaseDate : '';
+    scheduleRender();
+  });
+  on(els.fieldLength, 'input', () => {
+    if (film()) model.runtimeText = els.fieldLength.value; else model.totalLength = els.fieldLength.value;
+    scheduleRender();
+  });
+  on(els.fieldLabel, 'input', () => {
+    if (film()) model.studio = els.fieldLabel.value; else model.label = els.fieldLabel.value;
+    scheduleRender();
+  });
+  on(els.fieldFsk, 'input', () => { model.certification = els.fieldFsk.value.trim(); scheduleRender(); });
+  // Der Billing Block wird als „Rolle: Namen" je Zeile eingegeben und bleibt
+  // damit genauso überschreibbar wie die Tracklist.
+  on(els.fieldCredits, 'input', () => {
+    model.filmCredits = els.fieldCredits.value.split('\n')
+      .map((line) => {
+        const i = line.indexOf(':');
+        if (i === -1) return null;
+        const names = line.slice(i + 1).split(',').map((n) => n.trim()).filter(Boolean);
+        return names.length ? { label: line.slice(0, i).trim(), names } : null;
+      })
+      .filter(Boolean);
+    scheduleRender();
+  });
   on(els.fieldExplicit, 'change', () => {
     model.showExplicit = els.fieldExplicit.checked;
     scheduleRender();
   });
   on(els.fieldTracks, 'input', () => {
-    model.tracks = els.fieldTracks.value.split('\n').map((l) => l.trim()).filter(Boolean);
+    const lines = els.fieldTracks.value.split('\n').map((l) => l.trim()).filter(Boolean);
+    if (film()) model.cast = lines; else model.tracks = lines;
     scheduleRender();
   });
 
@@ -587,6 +829,7 @@
 
   // Manche Layouts leben von der Tracklist — ohne sie bleibt dort eine Lücke.
   function updateTrackHint() {
+    if (model.kind === 'film') { setStatus(els.tracksStatus, ''); return; }
     const styleModule = Poster.styles[model.style];
     if (styleModule && styleModule.needsTracks && !model.tracks.length) {
       setStatus(els.tracksStatus, 'Dieser Stil zeigt eine Tracklist — bitte Titel eintragen oder einen Treffer wählen.', 'error');
@@ -598,6 +841,9 @@
     model.size = e.target.value;
     updateCoverMeta();
     updateWallScale();
+    // Die Plakatmaße haben andere Seitenverhältnisse als die A-Reihe: ohne
+    // Neuzeichnen behielte die Vorschau die Maße des vorherigen Formats.
+    scheduleRender();
   });
 
   function updatePaletteUI() {
@@ -762,13 +1008,17 @@
   function render() {
     if (!model.coverImg) return;
     const canvas = els.posterCanvas;
-    if (canvas.width !== PREVIEW_W || canvas.height !== PREVIEW_H) {
+    const h = previewHeight();
+    if (canvas.width !== PREVIEW_W || canvas.height !== h) {
       canvas.width = PREVIEW_W;
-      canvas.height = PREVIEW_H;
+      canvas.height = h;
+      // Ohne das bliebe das im Stylesheet gesetzte Verhältnis stehen und das
+      // Bild würde verzerrt dargestellt.
+      canvas.style.aspectRatio = PREVIEW_W + ' / ' + h;
     }
     const ctx = canvas.getContext('2d');
     const styleModule = Poster.styles[model.style] || Poster.styles.minimal;
-    styleModule.draw(ctx, PREVIEW_W, PREVIEW_H, model);
+    styleModule.draw(ctx, PREVIEW_W, h, model);
   }
 
   // --- Preview mode toggle (poster / framed wall) -----------------------------
@@ -801,10 +1051,11 @@
   // echte Größe im Bild — A4 neben A2 an derselben Wand ist der eigentliche
   // Zweck der Ansicht, nicht die Deko.
   const SCENE = { w: 1200, h: 1000, wallCm: 130, centerY: 470 };
-  const PAPER_CM = { A4: [21, 29.7], A3: [29.7, 42], A2: [42, 59.4] };
 
   function updateWallScale() {
-    const [wCm, hCm] = PAPER_CM[model.size] || PAPER_CM.A4;
+    const paper = Poster.exportPoster.sizeInfo(model.size);
+    const wCm = paper.w / 10;
+    const hCm = paper.h / 10;
     const unitsPerCm = SCENE.w / SCENE.wallCm;
     const wUnits = wCm * unitsPerCm;
     const hUnits = hCm * unitsPerCm;
@@ -844,6 +1095,8 @@
     e.preventDefault();
     doSearch(els.searchInput.value);
   });
+
+  applyMode('music');
 
   loadFonts().then(() => {
     buildDrawCode();

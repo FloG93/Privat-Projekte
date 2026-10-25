@@ -1,0 +1,6 @@
+{
+  "version": "1.0.0",
+  "commit": "80d0611",
+  "released": "2026-09-12",
+  "note": "Zeigt auf den Commit, den /poster/ ausliefert. Freigeben = diesen Zeiger ändern; Zurückrollen = einen älteren Commit eintragen."
+}
