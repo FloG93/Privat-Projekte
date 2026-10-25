@@ -94,6 +94,8 @@ jobs:
             fi
             mkdir -p _site/poster/beta
             cp -r poster/. _site/poster/beta/
+            # Anleitung und Doku gehören ins Repo, nicht auf die Seite.
+            rm -f _site/poster/*.md _site/poster/beta/*.md
             write_build _site/poster/beta beta "$(jq -r .version poster/version.json)" "$(git rev-parse --short HEAD)"
             echo "Veröffentlicht: /poster/ und /poster/beta/"
           fi

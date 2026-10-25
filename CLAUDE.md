@@ -1,7 +1,8 @@
 # CLAUDE.md
 
-Private Web-Projekte: `Travel-Map-Generator/`. Übersicht und Aufbau:
-`README.md`. Gemeinsamer Code: `shared/`.
+Private Web-Projekte: `Travel-Map-Generator/`, `raum/` (Raumrechner) und
+`poster/` (Musik-Poster-Generator). Übersicht und Aufbau: `README.md`.
+Gemeinsamer Code: `shared/`.
 
 ## Regeln, die überall gelten
 
@@ -56,3 +57,29 @@ der Meilensteine ist verbindlich: M0 ist fertig, als Nächstes kommt M1.
 - MapLibre aktualisieren nur nach
   `Travel-Map-Generator/vendor/maplibre-gl/README.md`, danach `npm run check`:
   Zwischen großen Versionen wandern Optionen, und das findet nur der Typprüfer.
+
+## Raumrechner und Poster-Generator (`raum/`, `poster/`)
+
+Beide stammen aus dem Repo `FloG93/Arbeit` und sind dort ohne JSDoc-Typen
+gewachsen. Sie sind deshalb von der strengen Typprüfung ausgenommen
+(`tsconfig.json`, `exclude`). Neue Dateien in diesen Ordnern trotzdem mit Typen
+schreiben; geändert wird behutsam, beides läuft im Alltag.
+
+- **Alle Apps liegen auf derselben Herkunft** (`flog93.github.io`) – auch die
+  Kopien in `Arbeit`, solange es sie gibt. Jeder Service Worker beantwortet nur
+  die eigenen Pfade (`SHELL`) und löscht beim Aktivieren nur Caches mit dem
+  eigenen Präfix. Der Raumrechner hier heißt deshalb `pp-raumrechner-…`, nicht
+  `raumrechner-…`. **Bei jeder Dateiänderung die `CACHE`-Version in `raum/sw.js`
+  hochzählen** und neue Dateien in `ASSETS` eintragen.
+- `localStorage` und IndexedDB hängen an der Herkunft, nicht am Pfad: Schlüssel
+  wie `raumrechner.v2` teilt sich der Raumrechner hier mit seinem Original in
+  `Arbeit`. Datenformate nur abwärtskompatibel ändern.
+- Der Poster-Generator hat **zwei Kanäle**: `/poster/` aus dem Commit in
+  `poster/release.json`, `/poster/beta/` aus dem aktuellen Stand. Der Release-
+  Stand `80d0611` ist ein echter Commit dieser Historie und darf **nie
+  umgeschrieben, zusammengefasst (squash) oder durch Rebase verändert werden**,
+  sonst verliert der Release-Kanal seinen Stand. Freigeben: `release.json`
+  auf einen neuen Commit zeigen lassen, Version eintragen.
+- Zahlenfelder im Raumrechner als `type="text" inputmode="decimal"` mit
+  `parseNum`/`inputNum` (deutsches Komma) – `type="number"` verschluckt das
+  Komma und macht aus 2,75 m eine Raumhöhe von 275 m.

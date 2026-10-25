@@ -11,6 +11,8 @@ verlinkt alle Projekte.
 | Projekt | Was es macht | Online | Anleitung |
 | --- | --- | --- | --- |
 | **Travel-Map-Generator** | Verwandelt Reisedaten in animierte Karten-Videos und interaktive Web-Karten: Route aus Punkten, Smart Routing oder GPX-Track, Fotos an ihren Koordinaten, Kamerafahrt über 3D-Gelände. Export als Video, transparente Overlay-Spur oder einbettbare Karte für den Blog. *(im Aufbau – Meilenstein M1)* | [Öffnen](https://flog93.github.io/Privat-Projekte/Travel-Map-Generator/) | [Travel-Map-Generator](Travel-Map-Generator/README.md) |
+| **Raumrechner** | Wand-, Decken- und Bodenflächen unterwegs berechnen, mit Abzügen für Fenster und Türen, automatisch gezeichnetem Grundriss und Fotos je Raum. Export als PDF-Angebot und Excel/CSV, läuft offline und ist installierbar. | [Öffnen](https://flog93.github.io/Privat-Projekte/raum/) | [Raumrechner](raum/README.md) |
+| **Musik-Poster-Generator** | Künstler, Album, Song oder Film suchen und daraus ein druckreifes Poster bauen: Motiv groß im Bild, dazu ein scanbarer Code, in zwölf Design-Stilen, bis A0. Mit Release- und Beta-Kanal. | [Öffnen](https://flog93.github.io/Privat-Projekte/poster/) · [Beta](https://flog93.github.io/Privat-Projekte/poster/beta/) | [Poster-Generator](poster/README.md) |
 
 ## Aufbau
 
@@ -22,6 +24,8 @@ Travel-Map-Generator/   Animierte Reisekarten
   index.html, css/, js/, vendor/   Web-App
   tests/                Tests (node --test)
   README.md, PLAN.md, ARCHITECTURE.md
+raum/                   Raumrechner (aus dem Repo Arbeit übernommen, Adresse /raum/)
+poster/                 Musik-Poster-Generator mit Release- und Beta-Kanal (ebenfalls aus Arbeit)
 shared/                 Gemeinsames Design und Hell/Dunkel (→ shared/README.md)
 tools/check-links.mjs   Prüft jeden relativen Verweis im Repository
 types/                  Minimale Typen, damit die Typprüfung ohne npm-Pakete läuft
@@ -36,6 +40,7 @@ Veröffentlicht wird nach festen Regeln ([`pages.yml`](.github/workflows/pages.y
 - jeder Ordner mit einer `index.html` → `https://flog93.github.io/Privat-Projekte/<Ordner>/`
 - `shared/` → `https://flog93.github.io/Privat-Projekte/shared/` (von den Projekten per relativem Pfad eingebunden)
 - `tests/`, `docs/`, die `*.md` eines Projekts und die Typdateien in `vendor/` kommen nicht auf die Seite
+- `poster/` ist die Ausnahme: Es wird aus zwei Kanälen zusammengesetzt. `/poster/` ist die freigegebene Fassung, ausgepackt aus dem Commit in `poster/release.json`, `/poster/beta/` der aktuelle Stand. Freigeben heißt, diesen Zeiger zu ändern (Näheres in [`poster/README.md`](poster/README.md)). Der Commit muss in der Historie bleiben – nicht zusammenfassen, nicht umschreiben.
 
 ### Neues Projekt hinzufügen
 
