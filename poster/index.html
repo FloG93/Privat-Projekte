@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Musik-Poster-Generator</title>
+<meta name="description" content="Künstler, Album oder Song suchen und daraus ein druckreifes Musik-Poster mit Spotify-Code oder QR-Code generieren. Kein Login, läuft im Browser.">
+<meta name="theme-color" content="#0a0c10">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1>Musik-Poster-Generator</h1>
+    <p class="tagline">Künstler, Album oder Song suchen, Poster gestalten, druckreif exportieren — ohne Account.</p>
+    <p class="build-line">
+      <span id="build-badge" class="badge"></span>
+      <a id="channel-link" class="channel-link" href=""></a>
+    </p>
+  </header>
+
+  <div class="layout">
+    <section class="panel editor" aria-label="Editor">
+
+      <div class="block">
+        <h2>Suche</h2>
+        <form id="search-form" class="search-form">
+          <div class="search-row">
+            <input id="search-input" type="text" placeholder="Künstler, Album oder Song…" autocomplete="off">
+            <button type="submit">Suchen</button>
+          </div>
+          <div class="search-type" role="radiogroup" aria-label="Suchart">
+            <label><input type="radio" name="search-entity" value="song" checked> Song</label>
+            <label><input type="radio" name="search-entity" value="album"> Album</label>
+            <label><input type="radio" name="search-entity" value="artist"> Künstler</label>
+          </div>
+        </form>
+        <p id="search-status" class="status" aria-live="polite"></p>
+        <button id="results-back" type="button" class="link-btn" hidden>← Zurück zu den Künstlern</button>
+        <ul id="search-results" class="results"></ul>
+        <button id="manual-btn" type="button" class="link-btn">Ohne Suche manuell anlegen</button>
+      </div>
+
+      <details class="block">
+        <summary>Spotify-Zugang <span class="hint-inline">(optional, für echten Spotify-Code)</span></summary>
+        <p class="hint">Kostenlosen Client unter <a href="https://developer.spotify.com/dashboard" target="_blank" rel="noopener">developer.spotify.com</a> anlegen. Die Zugangsdaten bleiben ausschließlich in diesem Browser (localStorage) gespeichert und werden nur direkt an Spotify gesendet — kein eigener Server, kein Nutzer-Login nötig.</p>
+        <div class="field-row">
+          <label class="field">Client-ID<input id="spotify-id" type="text" autocomplete="off" spellcheck="false"></label>
+          <label class="field">Client-Secret<input id="spotify-secret" type="password" autocomplete="off"></label>
+        </div>
+        <div class="field-row">
+          <button id="spotify-save" type="button">Speichern &amp; verbinden</button>
+          <button id="spotify-clear" type="button" class="secondary">Entfernen</button>
+        </div>
+        <p id="spotify-status" class="status" aria-live="polite"></p>
+      </details>
+
+      <details class="block" id="diag-block">
+        <summary>Diagnose <span class="hint-inline">(bei Problemen)</span></summary>
+        <p class="hint">Protokoll dieser Sitzung. Bleibt auf dem Gerät und wird nirgendwohin gesendet — bei einem Fehler bitte kopieren und schicken.</p>
+        <textarea id="diag-log" rows="12" readonly spellcheck="false"></textarea>
+        <div class="field-row">
+          <button id="diag-copy" type="button">Kopieren</button>
+          <button id="diag-test" type="button" class="secondary">Verbindung testen</button>
+        </div>
+        <p id="diag-status" class="status" aria-live="polite"></p>
+      </details>
+
+      <div class="block editor-fields" id="editor-fields" hidden>
+        <h2>Poster</h2>
+
+        <div class="field">
+          <span class="field-label">Stil</span>
+          <div class="style-picker" id="style-picker">
+            <label class="style-option"><input type="radio" name="style" value="tracklist" checked><span class="swatch swatch-tracklist"></span>Tracklist-Klassiker</label>
+            <label class="style-option"><input type="radio" name="style" value="nowplaying"><span class="swatch swatch-nowplaying"></span>Now Playing</label>
+            <label class="style-option"><input type="radio" name="style" value="swiss"><span class="swatch swatch-swiss"></span>Swiss / Editorial</label>
+            <label class="style-option"><input type="radio" name="style" value="pantone"><span class="swatch swatch-pantone"></span>Pantone-Karte</label>
+            <label class="style-option"><input type="radio" name="style" value="linernotes"><span class="swatch swatch-linernotes"></span>Liner Notes</label>
+            <label class="style-option"><input type="radio" name="style" value="vinylsleeve"><span class="swatch swatch-vinylsleeve"></span>Vinyl-Hülle</label>
+            <label class="style-option"><input type="radio" name="style" value="minimal"><span class="swatch swatch-minimal"></span>Minimalistisch</label>
+            <label class="style-option"><input type="radio" name="style" value="vintage"><span class="swatch swatch-vintage"></span>Vintage / Vinyl</label>
+            <label class="style-option"><input type="radio" name="style" value="grunge"><span class="swatch swatch-grunge"></span>Grunge / Flyer</label>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <label class="field">Titel<input id="field-title" type="text"></label>
+          <label class="field">Künstler<input id="field-artist" type="text"></label>
+        </div>
+        <label class="field">Zusatzzeile (Album · Jahr)<input id="field-subtitle" type="text"></label>
+
+        <div class="field">
+          <span class="field-label">Tracklist <span class="hint-inline">(eine Zeile je Titel)</span></span>
+          <textarea id="field-tracks" rows="5" placeholder="Wird beim Auswählen automatisch geladen — hier frei editierbar."></textarea>
+          <p id="tracks-status" class="status" aria-live="polite"></p>
+        </div>
+
+        <div class="field-row">
+          <label class="field">Erschienen<input id="field-release" type="text"></label>
+          <label class="field">Länge<input id="field-length" type="text"></label>
+        </div>
+        <label class="field">Label<input id="field-label" type="text"></label>
+        <label class="check-field"><input id="field-explicit" type="checkbox"> Explicit-Kennzeichen aufs Cover</label>
+
+        <div class="field">
+          <span class="field-label">Cover</span>
+          <div class="cover-row">
+            <img id="cover-preview" alt="" class="cover-thumb">
+            <div class="cover-actions">
+              <p id="cover-meta" class="cover-meta"></p>
+              <div class="cover-buttons">
+                <label class="upload-btn">Eigenes Cover<input id="cover-upload" type="file" accept="image/*" hidden></label>
+                <button id="cover-upgrade" type="button" class="secondary">Schärferes Cover suchen</button>
+                <button id="cover-upscale" type="button" class="secondary" hidden>Notfall: hochrechnen</button>
+              </div>
+            </div>
+          </div>
+          <p id="cover-status" class="status" aria-live="polite"></p>
+          <div id="cover-candidates" class="cover-candidates" hidden></div>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Code-Typ</span>
+          <div class="code-picker" id="code-picker">
+            <label><input type="radio" name="codeType" value="spotify" disabled> Spotify-Code</label>
+            <label><input type="radio" name="codeType" value="qr" checked> QR-Code</label>
+            <label><input type="radio" name="codeType" value="none"> Kein Code</label>
+          </div>
+          <p id="code-hint" class="hint"></p>
+        </div>
+
+        <div class="field">
+          <span class="field-label">Akzentfarbe</span>
+          <div class="palette-row" id="palette-row"></div>
+          <input id="accent-custom" type="color" value="#1db954" class="color-input">
+        </div>
+
+        <div class="field">
+          <span class="field-label">Größe <span class="hint-inline">(300 dpi, druckreif)</span></span>
+          <div class="size-picker" id="size-picker">
+            <label><input type="radio" name="size" value="A4" checked>A4<small>21 × 29,7 cm</small></label>
+            <label><input type="radio" name="size" value="A3">A3<small>29,7 × 42 cm</small></label>
+            <label><input type="radio" name="size" value="A2">A2<small>42 × 59,4 cm</small></label>
+          </div>
+        </div>
+
+        <div class="export-row">
+          <button id="export-png" type="button">PNG exportieren</button>
+          <button id="export-pdf" type="button" class="secondary">PDF exportieren</button>
+        </div>
+        <p id="export-status" class="status" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section class="panel preview" aria-label="Vorschau">
+      <div class="preview-toggle">
+        <button type="button" class="toggle-btn active" data-mode="poster">Poster</button>
+        <button type="button" class="toggle-btn" data-mode="wall">An der Wand</button>
+      </div>
+      <div class="frame-picker" id="frame-picker" hidden>
+        <span class="field-label">Rahmen</span>
+        <button type="button" class="frame-btn frame-black active" data-frame="black" title="Schwarz"></button>
+        <button type="button" class="frame-btn frame-oak" data-frame="oak" title="Eiche"></button>
+        <button type="button" class="frame-btn frame-white" data-frame="white" title="Weiß"></button>
+      </div>
+      <div class="preview-stage mode-poster frame-black" id="preview-stage">
+        <div class="room">
+          <img src="room.svg" alt="" class="room-img">
+        </div>
+        <div class="wall-frame">
+          <div class="frame-mat">
+            <canvas id="poster-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+      <p class="preview-note" id="preview-note">Die Wand-Ansicht ist nur eine Vorschau und nicht Teil des Exports.</p>
+    </section>
+  </div>
+</div>
+
+<script src="build.js"></script>
+<script src="js/log.js"></script>
+<script src="js/sw-recovery.js"></script>
+<script src="vendor/qrcode-generator.js"></script>
+<script src="vendor/jspdf.umd.min.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/color.js"></script>
+<script src="js/qrcode.js"></script>
+<script src="js/upscale.js"></script>
+<script src="js/parts.js"></script>
+<script src="js/api.js"></script>
+<script src="js/styles/tracklist.js"></script>
+<script src="js/styles/nowplaying.js"></script>
+<script src="js/styles/swiss.js"></script>
+<script src="js/styles/pantone.js"></script>
+<script src="js/styles/linernotes.js"></script>
+<script src="js/styles/vinylsleeve.js"></script>
+<script src="js/styles/minimal.js"></script>
+<script src="js/styles/vintage.js"></script>
+<script src="js/styles/grunge.js"></script>
+<script src="js/export.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

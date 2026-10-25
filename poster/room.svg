@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1000" role="presentation">
+  <!-- Wohnzimmerwand als Kulisse für die Wand-Vorschau. Der Bildausschnitt
+       zeigt 130 cm Wandbreite — daraus rechnet main.js die Postergröße. -->
+  <defs>
+    <linearGradient id="wall" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#ece5db"/>
+      <stop offset="1" stop-color="#d8cfc3"/>
+    </linearGradient>
+    <radialGradient id="daylight" cx="0.28" cy="0.12" r="0.85">
+      <stop offset="0" stop-color="#fffdf8" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#fffdf8" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sofa" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8b9884"/>
+      <stop offset="1" stop-color="#5f6c5a"/>
+    </linearGradient>
+    <linearGradient id="pillow" x1="0" y1="0" x2="0.4" y2="1">
+      <stop offset="0" stop-color="#d8c3a5"/>
+      <stop offset="1" stop-color="#bda484"/>
+    </linearGradient>
+    <linearGradient id="pot" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#bf7550"/>
+      <stop offset="1" stop-color="#98573a"/>
+    </linearGradient>
+    <linearGradient id="sofaShadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a4239" stop-opacity="0"/>
+      <stop offset="1" stop-color="#4a4239" stop-opacity="0.28"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="1000" fill="url(#wall)"/>
+  <rect width="1200" height="1000" fill="url(#daylight)"/>
+
+  <!-- Zimmerpflanze links -->
+  <g>
+    <path d="M150 700 C 96 606 104 520 140 452 C 150 534 168 596 172 680 Z" fill="#5c7350"/>
+    <path d="M158 706 C 232 636 254 552 250 486 C 214 546 176 606 148 686 Z" fill="#6b8459"/>
+    <path d="M146 712 C 70 668 42 596 40 534 C 82 590 118 640 142 698 Z" fill="#4f6546"/>
+    <path d="M156 716 C 206 700 250 714 282 742 C 232 736 190 730 152 730 Z" fill="#6b8459"/>
+    <path d="M120 826 L 196 826 L 182 964 Q 158 976 134 964 Z" fill="url(#pot)"/>
+    <rect x="112" y="806" width="92" height="30" rx="7" fill="#cd8460"/>
+    <path d="M150 700 L 158 830" stroke="#4a5f42" stroke-width="9" fill="none"/>
+  </g>
+
+  <!-- Stehlampe rechts -->
+  <g>
+    <path d="M1084 1000 L 1084 448" stroke="#9a7f52" stroke-width="9" fill="none"/>
+    <path d="M1030 448 L 1138 448 L 1120 356 L 1048 356 Z" fill="#e8d7ad"/>
+    <path d="M1030 448 L 1138 448 L 1120 356 L 1048 356 Z" fill="#000" opacity="0.06"/>
+    <ellipse cx="1084" cy="448" rx="54" ry="8" fill="#f6ecd2" opacity="0.85"/>
+  </g>
+
+  <!-- Sofa: nur die Rückenlehne ragt in den Ausschnitt -->
+  <rect x="0" y="742" width="1200" height="120" fill="url(#sofaShadow)"/>
+  <g>
+    <rect x="196" y="742" width="128" height="122" rx="30" fill="url(#pillow)" transform="rotate(-7 260 800)"/>
+    <rect x="892" y="752" width="118" height="112" rx="28" fill="url(#pillow)" transform="rotate(6 951 808)"/>
+    <rect x="66" y="812" width="1068" height="200" rx="34" fill="url(#sofa)"/>
+    <path d="M126 812 L 126 1000 M 1074 812 L 1074 1000" stroke="#4f5b4a" stroke-width="4" opacity="0.5" fill="none"/>
+    <rect x="66" y="812" width="1068" height="26" rx="13" fill="#9aa792" opacity="0.55"/>
+  </g>
+</svg>

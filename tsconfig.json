@@ -23,5 +23,11 @@
     "skipLibCheck": true,
     "types": []
   },
-  "include": ["shared/js/**/*.js", "*/js/**/*.js", "*/tests/**/*.mjs", "types/**/*.d.ts"]
+  "include": ["shared/js/**/*.js", "*/js/**/*.js", "*/tests/**/*.mjs", "types/**/*.d.ts"],
+  // Aus Arbeit übernommene Projekte sind ohne JSDoc-Typen geschrieben. Sie
+  // nachträglich streng zu typisieren hieße, Hunderte Stellen anzufassen, die
+  // seit Monaten laufen – ohne dass es jemand verlangt hat. Neue Projekte und
+  // alles, was neu dazukommt, wird geprüft; Bestand nicht. Neue Dateien in
+  // diesen Ordnern bitte trotzdem mit Typen schreiben.
+  "exclude": ["raum", "poster"]
 }
