@@ -10,7 +10,9 @@ Gemeinsamer Code: `shared/`.
   npm-Pakete im Repo**. Fremdbibliotheken liegen unverändert in
   `<Projekt>/vendor/<name>/` samt Lizenz und `VERSION`. Hilfsprogramme
   (TypeScript, Playwright, Python) laufen über `npx`/`pip`, nie als
-  Abhängigkeit im Repository.
+  Abhängigkeit im Repository. Ausgenommen ist `.claude/skills/`: Agent Skills
+  für Claude Code, kein Code der Seite — wird weder veröffentlicht noch
+  geprüft.
 - Code-Kommentare und Dokumentation auf **Deutsch**, Bezeichner im Code
   **englisch**. Commit-Betreff deutsch im Imperativ.
 - Nur relative Pfade (läuft lokal mit `python3 -m http.server` und auf GitHub
