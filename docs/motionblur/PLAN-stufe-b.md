@@ -132,8 +132,20 @@ Zwei Teile dieser Kette sind nicht wegzulassen, beide gemessen:
   | `setparams` sagt | Ergebnis | |
   |---|---|---|
   | `color_trc=bt709` | `[3, 24, 72, 153]` | katastrophal dunkel |
-  | `color_trc=linear` | `[41, 95, 151, 207]` | richtig |
-  | Handrechnung (BT.709-OETF) | `[39, 95, 150, 206]` | Ziel |
+  | `color_trc=linear` | `[43,5, 95,2, 150,3, 205,9]` | richtig |
+  | Handrechnung (BT.1886) | `[43,51, 95,18, 150,28, 205,90]` | Ziel |
+
+- **`zscale=t=linear` benutzt bei `bt709` die reine Gamma-2,4-Kurve (BT.1886),
+  nicht die BT.709-Kamera-OETF.** Gemessen am Float-Zwischenbild: Luma 128 im
+  Begrenztbereich ergibt `0.200013`, und das ist `((128-16)/219)^2,4` auf sechs
+  Stellen. Die Kamerakurve ergäbe `0.270711`. Wer die Erwartungswerte von Hand
+  nachrechnet, muss Gamma 2,4 nehmen.
+- **Der Prüfclip muss `yuv420p` sein, nicht `gray`.** swscale und zimg halten
+  `gray` für ein Format im **Vollbereich**, auch wenn es als `tv` getaggt ist.
+  Gemessen, dieselbe Luma 128: `gray` ergibt `0.191253` = `(128/255)^2,4`,
+  `yuv420p` ergibt `0.200013` = `((128-16)/219)^2,4`. Mit `gray` heben sich
+  zwei Bereichsfehler beinahe auf — beinahe, nicht ganz. GoPro liefert
+  ohnehin `yuv420p`. Rücklesen als `yuv420p10le`.
 
 - [ ] **Schritt 6b: Die Kette an einem Testbild gegenprüfen, bevor du Material verbrennst**
 
@@ -744,7 +756,16 @@ Sollte ein Wert abweichen, ist die Kette in `ffmpeg_cli.rs` verändert worden �
 | 2/4 | 180° | `[8, 72, 136, 200]` | 4 |
 | 8/4 | 720° | `[56, 120, 184]` | 3 |
 
-Die Linearlicht-Variante hat eigene Werte, weil in linearem Licht gemittelt wird: bei einer Rampe `16 + 14n` und W/S = 4/4 ergibt sie `[41, 95, 151, 207]` gegen `[37, 93, 148, 204]` ohne Linearlicht. Prüfe beide.
+Die Linearlicht-Variante hat eigene Werte, weil in linearem Licht gemittelt wird. Bei einer **`yuv420p`**-Rampe `16 + 14n` und W/S = 4/4, rückgelesen als `yuv420p10le`:
+
+| Pfad | Werte |
+|---|---|
+| ohne Linearlicht (arithmetisch) | `[37, 93, 149, 205]` |
+| mit Linearlicht (BT.1886, Gamma 2,4) | `[43,5, 95,2, 150,3, 205,9]` |
+
+Prüfe beide — und prüfe ausdrücklich, dass sie **verschieden** sind. Nur das beweist, dass die Linearisierung wirklich stattfindet und nicht bloß Filter durchlaufen werden.
+
+Ein Luma-Test allein genügt übrigens nicht: ein auf 8 bit gezwungenes Zwischenformat bleibt in der Toleranz, weil das Rücklesen die Werte wieder auf 10 bit hebt. Prüfe das Pixelformat der Ausgabe zusätzlich per `ffprobe`.
 
 - [ ] **Schritt 5: Tests laufen lassen**
 
