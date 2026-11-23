@@ -3,6 +3,8 @@
  * Längen der Messwerte in mm, Raummaße in m. Kein DOM-Zugriff.
  */
 
+import { buildCells, gridDims } from './grid.js'
+
 /**
  * @typedef {object} Settings
  * @property {number} consumption   Verbrauch in kg je mm und m²
@@ -129,4 +131,27 @@ export function createProject(name) {
 export function emptyState() {
   const project = createProject('Mein Projekt')
   return { version: 1, activeProjectId: project.id, projects: [project] }
+}
+
+/**
+ * Neuer Raum. Ohne Maße entsteht kein Raster (Raum nur mit freien Punkten).
+ * @param {string} name
+ * @param {number | null} length Ost-West in m
+ * @param {number | null} width Nord-Süd in m
+ * @param {number} gridSize Rastermaß in m
+ * @returns {Room}
+ */
+export function createRoom(name, length, width, gridSize) {
+  const { cols, rows } = gridDims(length, width, gridSize)
+  return {
+    id: newId(),
+    name,
+    length,
+    width,
+    areaOverride: null,
+    inGroup: true,
+    startCorner: 'NW',
+    grid: { cols, rows, cells: buildCells(cols, rows) },
+    freePoints: [],
+  }
 }
