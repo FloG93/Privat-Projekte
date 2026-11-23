@@ -91,6 +91,34 @@ export async function confirmDialog(text, confirmLabel = 'Löschen') {
 }
 
 /**
+ * Frage mit mehreren Antworten. Gibt den Wert des gewählten Knopfs zurück,
+ * bei Abbruch null.
+ * @param {string} text
+ * @param {Array<{ value: string, label: string }>} choices
+ * @returns {Promise<string | null>}
+ */
+export async function choiceDialog(text, choices) {
+  const dialog = el('dialog', { class: 'dialog' },
+    el('form', { method: 'dialog' },
+      el('p', {}, text),
+      el('div', { class: 'dialog-actions stack' },
+        ...choices.map((c, i) => el('button', { class: i === 0 ? 'btn primary' : 'btn', value: c.value, type: 'submit' }, c.label)),
+        el('button', { class: 'btn', value: 'cancel', type: 'submit' }, 'Abbrechen'),
+      ),
+    ),
+  )
+  return new Promise((resolve) => {
+    dialog.addEventListener('close', () => {
+      const value = dialog.returnValue
+      dialog.remove()
+      resolve(value === '' || value === 'cancel' ? null : value)
+    })
+    document.body.append(dialog)
+    dialog.showModal()
+  })
+}
+
+/**
  * Meldung mit einem „OK“-Knopf.
  * @param {string} text
  * @returns {Promise<void>}

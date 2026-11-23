@@ -4,8 +4,9 @@
 
 import { formatKg, formatL, formatM2, formatMm, formatNum, formatPallets, parseMeasurement, parseNum } from '../format.js'
 import { removeSetup, setupInUse, updateSetupRef } from '../calc.js'
-import { createProject, createRoom } from '../model.js'
-import { alertDialog, confirmDialog, el, formDialog, icon } from './dom.js'
+import { createProject, createRoom, newId } from '../model.js'
+import { exportProject, parseImport } from '../store.js'
+import { alertDialog, choiceDialog, confirmDialog, el, formDialog, icon } from './dom.js'
 import { openLaserDialog } from './laser-dialog.js'
 
 /** @typedef {import('../model.js').Project} Project */
@@ -74,6 +75,7 @@ export function renderDashboard(root, ctx) {
     shoppingList(ctx),
     settingsSection(ctx),
     setupsSection(ctx),
+    dataSection(ctx),
   )
 }
 
@@ -278,8 +280,8 @@ export function validateRoomForm(v, gridSize) {
 
 // ---------------------------------------------------------------------------
 
-/** @param {DashboardCtx} ctx */
-function shoppingList({ summary }) {
+/** @param {{ summary: Summary }} ctx */
+export function shoppingList({ summary }) {
   if (summary.massKg <= 0) {
     return el('section', { class: 'card shopping' },
       el('h2', {}, 'Einkaufsliste'),
@@ -298,7 +300,7 @@ function shoppingList({ summary }) {
         ? `Bei getrenntem Gießen je Raum: ${summary.bagsSumRooms}`
         : undefined),
       row('Paletten', formatPallets(summary.palletFull, summary.palletRest),
-        summary.pallets > 0 ? `Aufgerundet: ${summary.pallets} Paletten` : undefined),
+        summary.pallets > 0 ? `Aufgerundet: ${summary.pallets} ${summary.pallets === 1 ? 'Palette' : 'Paletten'}` : undefined),
       row('Wasser', formatL(summary.waterL)),
       summary.hMeanWeighted !== null ? row('Ø Schichtdicke', formatMm(summary.hMeanWeighted), 'nach Fläche gewichtet') : null,
     ),
@@ -407,5 +409,67 @@ function setupsSection(ctx) {
     el('p', { class: 'muted' }, 'Neue Messwerte gehören zum aktiven Standort. Der Versatz bezieht sich auf die Linie von S1.'),
     ...rows,
     el('button', { class: 'btn', type: 'button', onclick: () => openLaserDialog(project, commit) }, icon('crosshair'), 'Laser umsetzen'),
+  ])
+}
+
+// ---------------------------------------------------------------------------
+
+/** @param {DashboardCtx} ctx */
+function dataSection(ctx) {
+  const { project, commit, navigate } = ctx
+
+  const exportFile = () => {
+    const { filename, json } = exportProject(project)
+    const url = URL.createObjectURL(new Blob([json], { type: 'application/json' }))
+    const link = el('a', { href: url, download: filename })
+    document.body.append(link)
+    link.click()
+    link.remove()
+    window.setTimeout(() => URL.revokeObjectURL(url), 10_000)
+  }
+
+  const fileInput = el('input', {
+    type: 'file',
+    accept: 'application/json,.json',
+    class: 'visually-hidden',
+    onchange: async (/** @type {Event} */ e) => {
+      const input = /** @type {HTMLInputElement} */ (e.target)
+      const file = input.files?.[0]
+      input.value = ''
+      if (!file) return
+      /** @type {import('../model.js').Project} */
+      let imported
+      try {
+        imported = parseImport(await file.text())
+      } catch (error) {
+        // Bestehende Daten bleiben unberührt.
+        await alertDialog(`Import nicht möglich: ${error instanceof Error ? error.message : 'unbekannter Fehler'}. Deine Daten wurden nicht verändert.`)
+        return
+      }
+      const choice = await choiceDialog(
+        `„${imported.name}“ importieren. Aktuelles Projekt „${project.name}“ ersetzen oder als neues Projekt hinzufügen?`,
+        [{ value: 'new', label: 'Als neues Projekt' }, { value: 'replace', label: 'Aktuelles ersetzen' }])
+      if (choice === null) return
+      commit((_p, state) => {
+        if (choice === 'replace') {
+          const index = state.projects.findIndex((p) => p.id === project.id)
+          state.projects[index === -1 ? state.projects.length : index] = imported
+        } else {
+          imported.id = newId()
+          state.projects.push(imported)
+        }
+        state.activeProjectId = imported.id
+      })
+    },
+  })
+
+  return section(ctx, 'data', 'Daten und Druck', [
+    el('p', { class: 'muted' }, 'Alles liegt nur auf diesem Gerät. Exportiere das Projekt regelmäßig als Datei – das ist die Sicherung.'),
+    el('div', { class: 'row wrap-row' },
+      el('button', { class: 'btn', type: 'button', onclick: () => navigate('#/druck') }, icon('printer'), 'Druckansicht'),
+      el('button', { class: 'btn', type: 'button', onclick: exportFile }, icon('download'), 'Exportieren'),
+      el('button', { class: 'btn', type: 'button', onclick: () => fileInput.click() }, icon('upload'), 'Importieren'),
+      fileInput,
+    ),
   ])
 }

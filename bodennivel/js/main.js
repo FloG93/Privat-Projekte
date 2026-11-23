@@ -11,6 +11,7 @@ import { wireThemeToggle } from '../../shared/js/theme.js'
 import { computeProject } from './calc.js'
 import { renderDashboard } from './ui/dashboard.js'
 import { openLaserDialog } from './ui/laser-dialog.js'
+import { renderPrint } from './ui/print.js'
 import { renderRoom } from './ui/room.js'
 import { el, icon } from './ui/dom.js'
 import { loadState, saveState } from './store.js'
@@ -102,8 +103,13 @@ function render() {
       return
     }
   }
+  if (route.name === 'print') {
+    renderPrint(root, { project, summary })
+    renderBanner()
+    window.scrollTo(0, scroll)
+    return
+  }
   // Raum unbekannt (gelöscht, Link aus einem anderen Projekt): zur Übersicht.
-  // Die Druckansicht kommt in Task 9 dazu.
   renderDashboard(root, { project, projects: state.projects, summary, commit, navigate, ui })
   renderBanner()
   window.scrollTo(0, scroll)
