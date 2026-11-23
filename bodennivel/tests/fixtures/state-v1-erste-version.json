@@ -1,0 +1,203 @@
+{
+  "version": 1,
+  "activeProjectId": "44c176d8-fb0e-4354-904d-a7713ffa2828",
+  "projects": [
+    {
+      "id": "44c176d8-fb0e-4354-904d-a7713ffa2828",
+      "name": "Altes Haus",
+      "connected": true,
+      "settings": {
+        "consumption": 1.6,
+        "bagKg": 25,
+        "minLayer": 3,
+        "maxLayer": 30,
+        "reservePct": 5,
+        "waterPerBag": 4.6,
+        "bagsPerPallet": 48,
+        "gridSize": 1
+      },
+      "setups": [
+        {
+          "id": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b",
+          "name": "S1",
+          "offset": 0,
+          "ref": null
+        },
+        {
+          "id": "9bd51a9f-e7b1-4d64-b47b-eb0213eb5903",
+          "name": "S2",
+          "offset": 20,
+          "ref": {
+            "label": "Tür",
+            "before": 120,
+            "after": 140,
+            "baseId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+          }
+        }
+      ],
+      "activeSetupId": "9bd51a9f-e7b1-4d64-b47b-eb0213eb5903",
+      "rooms": [
+        {
+          "id": "6432e67b-40c4-41ee-ba9c-3ae8c9692f36",
+          "name": "Schlafzimmer",
+          "length": 4,
+          "width": 3,
+          "areaOverride": null,
+          "inGroup": true,
+          "startCorner": "NW",
+          "grid": {
+            "cols": 4,
+            "rows": 3,
+            "cells": [
+              {
+                "row": 0,
+                "col": 0,
+                "excluded": false,
+                "value": 111,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 0,
+                "col": 1,
+                "excluded": false,
+                "value": 115,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 0,
+                "col": 2,
+                "excluded": false,
+                "value": 119,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 0,
+                "col": 3,
+                "excluded": false,
+                "value": 150,
+                "setupId": "9bd51a9f-e7b1-4d64-b47b-eb0213eb5903"
+              },
+              {
+                "row": 1,
+                "col": 0,
+                "excluded": false,
+                "value": 127,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 1,
+                "col": 1,
+                "excluded": false,
+                "value": 111,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 1,
+                "col": 2,
+                "excluded": false,
+                "value": 115,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 1,
+                "col": 3,
+                "excluded": false,
+                "value": 119,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 2,
+                "col": 0,
+                "excluded": false,
+                "value": 123,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 2,
+                "col": 1,
+                "excluded": false,
+                "value": 127,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 2,
+                "col": 2,
+                "excluded": false,
+                "value": 111,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 2,
+                "col": 3,
+                "excluded": true,
+                "value": 115,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              }
+            ]
+          },
+          "freePoints": []
+        },
+        {
+          "id": "4833a507-65af-4b17-bc5a-78c93524f1ab",
+          "name": "Flur",
+          "length": 3,
+          "width": 1,
+          "areaOverride": null,
+          "inGroup": false,
+          "startCorner": "NW",
+          "grid": {
+            "cols": 3,
+            "rows": 1,
+            "cells": [
+              {
+                "row": 0,
+                "col": 0,
+                "excluded": false,
+                "value": 118,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 0,
+                "col": 1,
+                "excluded": false,
+                "value": 121,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              },
+              {
+                "row": 0,
+                "col": 2,
+                "excluded": false,
+                "value": 124,
+                "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+              }
+            ]
+          },
+          "freePoints": []
+        },
+        {
+          "id": "daf40a18-cf04-494f-b64e-4dfab4b3e940",
+          "name": "WC",
+          "length": null,
+          "width": null,
+          "areaOverride": 2.2,
+          "inGroup": true,
+          "startCorner": "NW",
+          "grid": {
+            "cols": 0,
+            "rows": 0,
+            "cells": []
+          },
+          "freePoints": [
+            {
+              "id": "wc1",
+              "label": "Mitte",
+              "value": 120,
+              "setupId": "8ab3aa7e-d1a4-4e2b-85ac-7d89abc1853b"
+            }
+          ]
+        }
+      ],
+      "createdAt": "2026-11-23T21:16:27.280Z"
+    }
+  ]
+}
