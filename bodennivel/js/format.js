@@ -71,3 +71,39 @@ export function formatPallets(full, rest) {
   const pallets = `${full} ${full === 1 ? 'Palette' : 'Paletten'}`
   return rest === 0 ? pallets : `${pallets} + ${sacks}`
 }
+
+/** @typedef {'mm' | 'cm'} InputUnit */
+
+/**
+ * Abgelesenen Wert in der gewählten Einheit lesen und in mm liefern.
+ * Zentimeter werden mal 10 genommen; was über 2 m landet, ist abgelehnt –
+ * so wird aus einem versehentlichen „304“ in cm kein Messwert.
+ * @param {string} raw
+ * @param {InputUnit} unit
+ * @returns {number | null}
+ */
+export function parseReading(raw, unit) {
+  const value = parseNum(raw)
+  if (value === null) return null
+  const mm = unit === 'cm' ? value * 10 : value
+  if (mm < 0 || mm > 2000) return null
+  return Math.round(mm * 10) / 10
+}
+
+/**
+ * @param {number} mm
+ * @param {InputUnit} unit
+ * @returns {string}
+ */
+export function formatReading(mm, unit) {
+  return unit === 'cm' ? `${formatNum(mm / 10, 2)} cm` : `${formatNum(mm)} mm`
+}
+
+/**
+ * Differenz in mm mit Vorzeichen („+4“, „-2“).
+ * @param {number} mm
+ * @returns {string}
+ */
+export function formatDiff(mm) {
+  return `${mm > 0 ? '+' : ''}${formatNum(mm)}`
+}

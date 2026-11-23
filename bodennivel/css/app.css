@@ -19,7 +19,7 @@ body {
 }
 
 body.has-entry {
-  padding-bottom: calc(9.5rem + env(safe-area-inset-bottom));
+  padding-bottom: calc(13rem + env(safe-area-inset-bottom));
 }
 
 h1, h2, h3 {
@@ -59,6 +59,7 @@ main { padding-block: 1rem 3rem; }
 
 .row { display: flex; align-items: center; gap: 0.6rem; }
 .wrap-row { flex-wrap: wrap; margin-top: 0.6rem; }
+.grow { flex: 1; }
 .row h1 { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 
 /* Bedienelemente ------------------------------------------------------------ */
@@ -278,7 +279,8 @@ input[type='radio'] { width: 1.5rem; height: 1.5rem; flex: none; accent-color: v
 .entry-add { min-width: 3.4rem; min-height: 3.4rem; }
 .entry-tools { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
 .entry-tools .btn { flex: 1; }
-.entry-laser { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
+.entry-laser { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+.entry-laser .btn { flex: 1; font-size: 0.9rem; padding-inline: 0.5rem; }
 @media (max-width: 26rem) {
   .entry-label { grid-column: 1 / -1; }
   .entry-form { grid-template-columns: 1fr auto auto; }

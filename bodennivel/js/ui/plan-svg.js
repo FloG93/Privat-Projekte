@@ -4,7 +4,7 @@
  */
 
 import { layerClass } from '../calc.js'
-import { formatNum } from '../format.js'
+import { formatDiff, formatNum, formatReading } from '../format.js'
 
 /** @typedef {import('../model.js').Room} Room */
 /** @typedef {import('../calc.js').RoomResult} RoomResult */
@@ -34,11 +34,12 @@ function svg(tag, attrs = {}, ...children) {
  * @param {Room} room
  * @param {RoomResult} result
  * @param {Pick<RoomUi, 'selected' | 'show'>} ui
+ * @param {import('../format.js').InputUnit} unit Einheit der angezeigten Messwerte
  * @param {(cell: CellPos) => void} onSelect
  * @param {(cell: CellPos) => void} onToggleExclude
  * @returns {SVGElement}
  */
-export function renderPlan(room, result, ui, onSelect, onToggleExclude) {
+export function renderPlan(room, result, ui, unit, onSelect, onToggleExclude) {
   const { cols, rows } = room.grid
   const width = cols * CELL
   const height = rows * CELL
@@ -65,12 +66,16 @@ export function renderPlan(room, result, ui, onSelect, onToggleExclude) {
       role: 'button',
       tabindex: 0,
       'aria-label': `Zeile ${cell.row + 1}, Spalte ${cell.col + 1}: ${
-        cell.excluded ? 'gehört nicht zum Raum' : measured ? `${formatNum(cell.value ?? 0)} mm` : 'leer'}`,
+        cell.excluded ? 'gehört nicht zum Raum' : measured ? formatReading(cell.value ?? 0, unit) : 'leer'}`,
     })
     group.append(svg('rect', { x: 2, y: 2, width: CELL - 4, height: CELL - 4, rx: 10 }))
 
     if (measured && cell.value !== null) {
-      const raw = formatNum(cell.value)
+      // Mit Laserhöhe steht die Differenz in der Zelle, sonst der abgelesene Wert.
+      const diff = result.diffCells.get(key)
+      const raw = diff !== undefined
+        ? formatDiff(diff)
+        : formatNum(unit === 'cm' ? cell.value / 10 : cell.value, unit === 'cm' ? 2 : 1)
       const hText = h === undefined ? '' : formatNum(h)
       if (ui.show === 'both') {
         group.append(

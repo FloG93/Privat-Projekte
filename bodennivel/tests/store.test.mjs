@@ -121,3 +121,27 @@ describe('Export und Import', () => {
     assert.throws(() => parseImport(JSON.stringify(file)), /Messwert/)
   })
 })
+
+describe('Laserhöhe und Einheit im Speicher', () => {
+  it('ältere Daten ohne die neuen Felder werden mit Standardwerten ergänzt', () => {
+    const file = JSON.parse(exportProject(sampleProject()).json)
+    delete file.project.settings.laserHeight
+    delete file.project.settings.inputUnit
+    const project = parseImport(JSON.stringify(file))
+    assert.equal(project.settings.laserHeight, 0)
+    assert.equal(project.settings.inputUnit, 'mm')
+  })
+
+  it('Rundlauf mit Laserhöhe in cm', () => {
+    const project = sampleProject()
+    project.settings.laserHeight = 300
+    project.settings.inputUnit = 'cm'
+    assert.deepEqual(parseImport(exportProject(project).json), project)
+  })
+
+  it('lehnt eine unbekannte Einheit ab', () => {
+    const file = JSON.parse(exportProject(sampleProject()).json)
+    file.project.settings.inputUnit = 'zoll'
+    assert.throws(() => parseImport(JSON.stringify(file)), /inputUnit/)
+  })
+})

@@ -22,10 +22,16 @@ hinzufügen.
 4. **Freie Punkte:** Chips wie „Ecke NW“ oder „Tür“ für gezielt gemessene
    Stellen. Sie zählen für den höchsten Punkt und die maximale Schicht, nicht
    für den Mittelwert.
-5. **Laser umsetzen:** Wenn die Linie nicht mehr passt: einen Punkt messen,
+5. **Laserhöhe und Einheit:** Unten in der Eingabeleiste „Höhe …“ antippen. Steht der
+   Laser z. B. auf 30 cm und du liest 30,4 cm ab, zeigt die Draufsicht **+4**
+   (mm) in der Zelle. Eingabe wahlweise in cm (30,4) oder mm (304). Ein Wert,
+   der weit von der Laserhöhe abweicht (z. B. Einheit vertauscht), fragt vor dem
+   Speichern nach. Gespeichert wird immer der abgelesene Wert; die Laserhöhe
+   ändert nur die Anzeige, nicht das Anzeichen-Maß.
+6. **Laser umsetzen:** Wenn die Linie nicht mehr passt: einen Punkt messen,
    Laser umstellen, denselben Punkt noch einmal messen. Die App rechnet alle
    Werte auf die Linie des ersten Standorts um; die Rohwerte bleiben stehen.
-6. **Ergebnis:** je Raum und als Einkaufsliste (Masse, Säcke, Paletten,
+7. **Ergebnis:** je Raum und als Einkaufsliste (Masse, Säcke, Paletten,
    Wasser). Die Druckansicht gibt je Raum eine Seite mit Draufsicht und
    Anzeichen-Maß aus.
 

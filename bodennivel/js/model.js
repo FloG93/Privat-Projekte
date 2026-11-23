@@ -15,6 +15,8 @@ import { buildCells, gridDims } from './grid.js'
  * @property {number} waterPerBag   Wasser je Sack in Litern
  * @property {number} bagsPerPallet Säcke je Palette
  * @property {number} gridSize      Rastermaß in m
+ * @property {number} laserHeight   Höhe der Laserlinie in mm, 0 = Messwerte nicht dagegen verrechnen
+ * @property {'mm' | 'cm'} inputUnit Einheit, in der Messwerte getippt und angezeigt werden
  */
 
 /**
@@ -102,6 +104,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
   waterPerBag: 4.6,
   bagsPerPallet: 48,
   gridSize: 1,
+  laserHeight: 0,
+  inputUnit: 'mm',
 })
 
 /** @returns {string} */

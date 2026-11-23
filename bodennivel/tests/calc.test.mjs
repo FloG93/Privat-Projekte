@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import {
-  addSetup, computeProject, corrected, formatMark, layerClass, recomputeOffsets, removeSetup, setupInUse, setupOffset, updateSetupRef,
+  addSetup, computeProject, corrected, formatMark, isPlausibleReading, layerClass, recomputeOffsets, removeSetup, setupInUse, setupOffset, updateSetupRef,
 } from '../js/calc.js'
 import { createProject, createRoom, newId } from '../js/model.js'
 
@@ -298,5 +298,52 @@ describe('Standorte nachträglich ändern', () => {
     const s3 = addSetup(p, 'Fenster', 10, 15)
     p.rooms.push(roomWith('A', 1, 1, [12], s3.id))
     assert.equal(removeSetup(p, s3.id), false)
+  })
+})
+
+describe('Laserhöhe', () => {
+  it('Differenz zur Laserhöhe: 304 mm bei 300 mm Laserhöhe ergibt +4', () => {
+    const room = roomWith('A', 2, 1, [304, 298])
+    const p = projectWith(false, room)
+    p.settings.laserHeight = 300
+    const r = res(computeProject(p), 0)
+    assert.equal(r.diffCells.get('0,0'), 4)
+    assert.equal(r.diffCells.get('0,1'), -2)
+    // Die Schichtdicken ändern sich dadurch nicht, nur die Anzeige.
+    assert.equal(r.dMin, 298)
+    assert.equal(r.hCells.get('0,0'), 9)
+  })
+
+  it('ohne Laserhöhe gibt es keine Differenzen', () => {
+    const r = res(computeProject(projectWith(false, roomWith('A', 2, 1, [304, 298]))), 0)
+    assert.equal(r.diffCells.size, 0)
+  })
+
+  it('rechnet zuerst den Laser-Versatz heraus, dann die Laserhöhe', () => {
+    const p = createProject('Test')
+    p.settings.laserHeight = 300
+    const s2 = addSetup(p, 'Tür', 300, 500)
+    p.rooms.push(roomWith('A', 1, 1, [504], s2.id))
+    const r = res(computeProject(p), 0)
+    assert.equal(r.diffCells.get('0,0'), 4)
+  })
+
+  it('freie Punkte bekommen ebenfalls eine Differenz', () => {
+    const room = createRoom('WC', null, null, 1)
+    room.freePoints.push({ id: 'a', label: 'Mitte', value: 305, setupId: 'x' })
+    const p = projectWith(false, room)
+    p.settings.laserHeight = 300
+    assert.equal(res(computeProject(p), 0).diffPoints.get('a'), 5)
+  })
+
+  it('isPlausibleReading warnt, wenn die Einheit nicht passen kann', () => {
+    const p = createProject('Test')
+    assert.equal(isPlausibleReading(p, 3040, null), true) // ohne Laserhöhe keine Prüfung
+    p.settings.laserHeight = 300
+    assert.equal(isPlausibleReading(p, 304, p.activeSetupId), true)
+    assert.equal(isPlausibleReading(p, 30.4, p.activeSetupId), false)
+    assert.equal(isPlausibleReading(p, 420, p.activeSetupId), false)
+    const s2 = addSetup(p, 'Tür', 300, 500)
+    assert.equal(isPlausibleReading(p, 504, s2.id), true)
   })
 })

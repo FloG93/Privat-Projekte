@@ -31,6 +31,8 @@ export const LAYER_MID_MAX = 25
  * @property {Array<{ setupId: string, name: string, dSoll: number }>} marks
  * @property {Map<string, number>} hCells   Schlüssel „row,col“
  * @property {Map<string, number>} hPoints  Schlüssel Point.id
+ * @property {Map<string, number>} diffCells   Differenz zur Laserhöhe in mm (leer ohne Laserhöhe)
+ * @property {Map<string, number>} diffPoints  dasselbe für freie Punkte
  * @property {number | null} hMean
  * @property {number | null} hMax
  * @property {number} area
@@ -229,6 +231,23 @@ function computeRoom(project, room, dMin) {
     }
   }
 
+  // Differenz zur Laserhöhe: nur zur Anzeige. Gerechnet wird mit den
+  // abgelesenen Werten, damit das Anzeichen-Maß ein echtes Maß bleibt.
+  /** @type {Map<string, number>} */
+  const diffCells = new Map()
+  /** @type {Map<string, number>} */
+  const diffPoints = new Map()
+  if (s.laserHeight > 0) {
+    for (const cell of room.grid.cells) {
+      if (!cell.excluded && cell.value !== null) {
+        diffCells.set(`${cell.row},${cell.col}`, corrected(project, cell.value, cell.setupId) - s.laserHeight)
+      }
+    }
+    for (const point of room.freePoints) {
+      diffPoints.set(point.id, corrected(project, point.value, point.setupId) - s.laserHeight)
+    }
+  }
+
   const gridH = [...hCells.values()]
   const freeH = [...hPoints.values()]
   /** @type {RoomResult['basis']} */
@@ -258,6 +277,8 @@ function computeRoom(project, room, dMin) {
     marks,
     hCells,
     hPoints,
+    diffCells,
+    diffPoints,
     hMean,
     hMax,
     area,
@@ -266,6 +287,24 @@ function computeRoom(project, room, dMin) {
     waterL: bags * s.waterPerBag,
     overMax: hMax !== null && hMax > s.maxLayer,
   }
+}
+
+/** Größte Abweichung von der Laserhöhe, die noch als plausibel gilt (mm). */
+export const READING_TOLERANCE_MM = 100
+
+/**
+ * Kann dieser abgelesene Wert zur eingestellten Laserhöhe passen? Fängt
+ * falsche Einheiten ab („30,4“ in mm statt cm). Ohne Laserhöhe gibt es nichts
+ * zu prüfen.
+ * @param {Project} project
+ * @param {number} raw abgelesener Wert in mm
+ * @param {string | null} setupId
+ * @returns {boolean}
+ */
+export function isPlausibleReading(project, raw, setupId) {
+  const height = project.settings.laserHeight
+  if (height <= 0) return true
+  return Math.abs(corrected(project, raw, setupId) - height) <= READING_TOLERANCE_MM
 }
 
 /**
