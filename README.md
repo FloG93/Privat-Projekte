@@ -13,6 +13,7 @@ verlinkt alle Projekte.
 | **Travel-Map-Generator** | Verwandelt Reisedaten in animierte Karten-Videos und interaktive Web-Karten: Route aus Punkten, Smart Routing oder GPX-Track, Fotos an ihren Koordinaten, Kamerafahrt über 3D-Gelände. Export als Video, transparente Overlay-Spur oder einbettbare Karte für den Blog. *(im Aufbau – Meilenstein M1)* | [Öffnen](https://flog93.github.io/Privat-Projekte/Travel-Map-Generator/) | [Travel-Map-Generator](Travel-Map-Generator/README.md) |
 | **Raumrechner** | Wand-, Decken- und Bodenflächen unterwegs berechnen, mit Abzügen für Fenster und Türen, automatisch gezeichnetem Grundriss und Fotos je Raum. Export als PDF-Angebot und Excel/CSV, läuft offline und ist installierbar. | [Öffnen](https://flog93.github.io/Privat-Projekte/raum/) | [Raumrechner](raum/README.md) |
 | **Musik-Poster-Generator** | Künstler, Album, Song oder Film suchen und daraus ein druckreifes Poster bauen: Motiv groß im Bild, dazu ein scanbarer Code, in zwölf Design-Stilen, bis A0. Mit Release- und Beta-Kanal. | [Öffnen](https://flog93.github.io/Privat-Projekte/poster/) · [Beta](https://flog93.github.io/Privat-Projekte/poster/beta/) | [Poster-Generator](poster/README.md) |
+| **BodenNivel** | Laser-Aufmaß im Raster aufnehmen und daraus Ausgleichsmasse berechnen: Draufsicht mit allen Messwerten, Säcke, Paletten, Wasser und das Soll-Maß zum Anzeichnen. Mehrere Räume, schwellenloser Verbund, Laser umsetzen, Druckansicht und JSON-Sicherung; läuft offline und ist installierbar. | [Öffnen](https://flog93.github.io/Privat-Projekte/bodennivel/) | [BodenNivel](bodennivel/README.md) |
 
 ## Aufbau
 
@@ -26,6 +27,7 @@ Travel-Map-Generator/   Animierte Reisekarten
   README.md, PLAN.md, ARCHITECTURE.md
 raum/                   Raumrechner (aus dem Repo Arbeit übernommen, Adresse /raum/)
 poster/                 Musik-Poster-Generator mit Release- und Beta-Kanal (ebenfalls aus Arbeit)
+bodennivel/             Ausgleichsmassen-Rechner mit Laser-Aufmaß (neu, mit Typen und Tests)
 shared/                 Gemeinsames Design und Hell/Dunkel (→ shared/README.md)
 tools/check-links.mjs   Prüft jeden relativen Verweis im Repository
 types/                  Minimale Typen, damit die Typprüfung ohne npm-Pakete läuft

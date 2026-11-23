@@ -5,8 +5,9 @@
   "description": "Private Web-Projekte von FloG93 – Übersichtsseite und Projekte, die direkt im Browser laufen.",
   "scripts": {
     "start": "python3 -m http.server 8080",
-    "test": "npm run test:travel-map && npm run test:links",
+    "test": "npm run test:travel-map && npm run test:bodennivel && npm run test:links",
     "test:travel-map": "node --test \"Travel-Map-Generator/tests/*.test.mjs\"",
+    "test:bodennivel": "node --test \"bodennivel/tests/*.test.mjs\"",
     "test:links": "node tools/check-links.mjs",
     "typecheck": "npx --yes --package typescript@5.9.3 -- tsc --noEmit",
     "check": "npm run typecheck && npm test"

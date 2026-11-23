@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-Private Web-Projekte: `Travel-Map-Generator/`, `raum/` (Raumrechner) und
-`poster/` (Musik-Poster-Generator). Übersicht und Aufbau: `README.md`.
+Private Web-Projekte: `Travel-Map-Generator/`, `raum/` (Raumrechner),
+`poster/` (Musik-Poster-Generator) und `bodennivel/` (Ausgleichsmassen-Rechner). Übersicht und Aufbau: `README.md`.
 Gemeinsamer Code: `shared/`.
 
 ## Regeln, die überall gelten
@@ -83,3 +83,20 @@ schreiben; geändert wird behutsam, beides läuft im Alltag.
 - Zahlenfelder im Raumrechner als `type="text" inputmode="decimal"` mit
   `parseNum`/`inputNum` (deutsches Komma) – `type="number"` verschluckt das
   Komma und macht aus 2,75 m eine Raumhöhe von 275 m.
+
+## BodenNivel (`bodennivel/`)
+
+Entwurf und Begründung: `docs/superpowers/specs/2026-11-23-bodennivel-design.md`,
+Umsetzungsplan daneben unter `plans/`. Fachlogik (`js/calc.js`, `grid.js`,
+`format.js`, `store.js`) ist DOM-frei und getestet; `js/ui/` zeichnet nur.
+
+- **Rohwerte bleiben unverändert.** Der Laser-Versatz wird beim Rechnen
+  angewandt (`corrected()`), nie in gespeicherte Messwerte geschrieben.
+- Speicher-Schlüssel `bodennivel.v1`; Datenformat nur abwärtskompatibel
+  ändern (`migrate()` in `store.js`). Importdateien werden streng geprüft.
+- Zahlenfelder immer `type="text" inputmode="decimal"` und `parseMeasurement`.
+- Service Worker: Präfix `pp-bodennivel-`. **Bei jeder Dateiänderung die
+  `CACHE`-Version in `bodennivel/sw.js` hochzählen** und neue Dateien in
+  `ASSETS` eintragen (`tests/sw.test.mjs` erinnert daran).
+- Neue Icons: unverändert aus `lucide-static` nach `vendor/lucide/icons/`,
+  Namen in `ICONS` (`js/ui/dom.js`) und `ASSETS` ergänzen.

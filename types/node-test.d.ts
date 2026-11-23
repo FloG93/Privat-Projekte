@@ -41,5 +41,9 @@ declare module 'node:assert/strict' {
 
 declare module 'node:fs/promises' {
   export function readFile(path: string | URL): Promise<Uint8Array>
+  export function readFile(path: string | URL, encoding: 'utf8'): Promise<string>
+  export function access(path: string | URL): Promise<void>
+  export function readdir(path: string | URL): Promise<string[]>
+  export function readdir(path: string | URL, options: { recursive: true }): Promise<string[]>
   export function writeFile(path: string | URL, data: Uint8Array | string): Promise<void>
 }
