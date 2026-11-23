@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { formatKg, formatL, formatM2, formatMm, formatNum, formatPallets, parseMeasurement, parseNum } from '../js/format.js'
+import { formatKg, formatL, formatM2, formatMm, formatNum, formatPallets, formatDiff, formatReading, parseMeasurement, parseNum, parseReading } from '../js/format.js'
 
 describe('parseNum', () => {
   it('liest deutsches Komma und Punkt', () => {
@@ -52,5 +52,37 @@ describe('formatPallets', () => {
     assert.equal(formatPallets(3, 0), '3 Paletten')
     assert.equal(formatPallets(0, 12), '12 Säcke (keine volle Palette)')
     assert.equal(formatPallets(0, 0), '–')
+  })
+})
+
+describe('parseReading', () => {
+  it('liest Millimeter wie parseMeasurement', () => {
+    assert.equal(parseReading('304', 'mm'), 304)
+    assert.equal(parseReading('7,25', 'mm'), 7.3)
+  })
+  it('rechnet Zentimeter in Millimeter um', () => {
+    assert.equal(parseReading('30,4', 'cm'), 304)
+    assert.equal(parseReading('30.4', 'cm'), 304)
+    assert.equal(parseReading('30,45', 'cm'), 304.5)
+    assert.equal(parseReading('0,8', 'cm'), 8)
+  })
+  it('lehnt Unsinn und Werte über 2 m ab – „304“ in cm sind 3 m', () => {
+    assert.equal(parseReading('304', 'cm'), null)
+    assert.equal(parseReading('', 'cm'), null)
+    assert.equal(parseReading('abc', 'cm'), null)
+    assert.equal(parseReading('-1', 'cm'), null)
+  })
+})
+
+describe('formatReading / formatDiff', () => {
+  it('zeigt den Wert in der gewählten Einheit', () => {
+    assert.equal(formatReading(304, 'cm'), '30,4 cm')
+    assert.equal(formatReading(304, 'mm'), '304 mm')
+    assert.equal(formatReading(304.5, 'cm'), '30,45 cm')
+  })
+  it('Differenz mit Vorzeichen', () => {
+    assert.equal(formatDiff(4), '+4')
+    assert.equal(formatDiff(-2.5), '-2,5')
+    assert.equal(formatDiff(0), '0')
   })
 })

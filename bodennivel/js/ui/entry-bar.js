@@ -3,10 +3,12 @@
  * Das Feld behält den Fokus, damit die Tastatur offen bleibt.
  */
 
-import { formatNum, parseMeasurement } from '../format.js'
+import { isPlausibleReading } from '../calc.js'
+import { formatNum, formatReading, parseReading } from '../format.js'
 import { nextCell, prevCell, snakeOrder } from '../grid.js'
 import { newId } from '../model.js'
-import { el, icon } from './dom.js'
+import { confirmDialog, el, icon } from './dom.js'
+import { describeLaserHeight, openLaserHeightDialog } from './laser-dialog.js'
 
 /** @typedef {import('../model.js').Project} Project */
 /** @typedef {import('../model.js').Room} Room */
@@ -43,8 +45,12 @@ export function focusEntry(root) {
   root.querySelector('.entry-input')?.dispatchEvent(new Event('x-focus'))
 }
 
-/** @param {number} value */
-const toField = (value) => formatNum(value, 1).replace(/\./g, '')
+/**
+ * Wert fürs Eingabefeld, in der gewählten Einheit und ohne Tausenderpunkt.
+ * @param {number} mm
+ * @param {import('../format.js').InputUnit} unit
+ */
+const toField = (mm, unit) => formatNum(unit === 'cm' ? mm / 10 : mm, 2).replace(/\./g, '')
 
 /**
  * @param {EntryCtx} ctx
@@ -59,6 +65,7 @@ export function renderEntryBar(ctx) {
   const freeMode = ui.freeLabel !== null
   const canEnter = freeMode || selectedCell !== undefined
   const setup = project.setups.find((s) => s.id === project.activeSetupId)
+  const unit = project.settings.inputUnit
 
   const label = freeMode
     ? `Freier Punkt: ${ui.freeLabel}`
@@ -72,21 +79,34 @@ export function renderEntryBar(ctx) {
     inputmode: 'decimal',
     enterkeyhint: 'next',
     autocomplete: 'off',
-    'aria-label': 'Messwert in Millimetern',
+    'aria-label': `Messwert in ${unit === 'cm' ? 'Zentimetern' : 'Millimetern'}`,
     disabled: !canEnter,
-    value: !freeMode && selectedCell?.value != null ? toField(selectedCell.value) : '',
+    value: !freeMode && selectedCell?.value != null ? toField(selectedCell.value, unit) : '',
   })
   // Fokus kommt von außen (focusEntry), erst wenn das Feld im Dokument hängt.
   input.addEventListener('x-focus', () => { input.focus(); input.select() })
   input.addEventListener('input', () => input.removeAttribute('aria-invalid'))
 
   /** Wert speichern und zur nächsten Zelle springen. */
-  const save = () => {
-    const value = parseMeasurement(input.value)
+  const save = async () => {
+    const value = parseReading(input.value, unit)
     if (value === null) {
       input.setAttribute('aria-invalid', 'true')
       input.focus()
       return
+    }
+    // Falsche Einheit abfangen: „30,4“ in mm wäre weit weg von der Laserhöhe.
+    if (!isPlausibleReading(project, value, project.activeSetupId)) {
+      const ok = await confirmDialog(
+        `${formatReading(value, unit)} liegt weit von der Laserhöhe ${describeLaserHeight(project)} entfernt. `
+        + `Stimmt die Einheit (${unit})? Trotzdem speichern?`,
+        'Speichern')
+      if (!ok) {
+        input.setAttribute('aria-invalid', 'true')
+        requestEntryFocus()
+        rerender()
+        return
+      }
     }
     requestEntryFocus()
     if (freeMode) {
@@ -145,12 +165,12 @@ export function renderEntryBar(ctx) {
   const form = el('form', { class: 'entry-form', novalidate: true },
     el('span', { class: 'entry-label' }, label),
     input,
-    el('span', { class: 'entry-unit' }, 'mm'),
+    el('span', { class: 'entry-unit' }, unit),
     el('button', { class: 'btn primary entry-add', type: 'submit', disabled: !canEnter, 'aria-label': 'Speichern und weiter' }, icon('plus')),
   )
   form.addEventListener('submit', (event) => {
     event.preventDefault()
-    save()
+    void save()
   })
 
   return el('div', { class: 'entry' },
@@ -164,7 +184,13 @@ export function renderEntryBar(ctx) {
           : null,
       ),
       el('div', { class: 'entry-laser' },
-        el('span', {}, `Laser: ${setup?.name ?? 'S1'}${setup && setup.offset !== 0 ? ` (${setup.offset > 0 ? '+' : ''}${formatNum(setup.offset)} mm)` : ''}`),
+        el('button', {
+          class: 'btn',
+          type: 'button',
+          onclick: () => openLaserHeightDialog(project, commit),
+          'aria-label': 'Laserhöhe einstellen',
+        }, icon('settings'),
+        `${setup?.name ?? 'S1'}${setup && setup.offset !== 0 ? ` (${setup.offset > 0 ? '+' : ''}${formatNum(setup.offset)} mm)` : ''} · Höhe ${describeLaserHeight(project)}`),
         ctx.onLaser
           ? el('button', { class: 'btn', type: 'button', onclick: ctx.onLaser }, icon('crosshair'), 'Laser umsetzen')
           : null,

@@ -4,7 +4,7 @@
  */
 
 import { formatMark } from '../calc.js'
-import { formatKg, formatL, formatM2, formatMm, formatNum } from '../format.js'
+import { formatDiff, formatKg, formatL, formatM2, formatMm, formatNum, formatReading } from '../format.js'
 import { shoppingList } from './dashboard.js'
 import { el, icon } from './dom.js'
 import { renderPlan } from './plan-svg.js'
@@ -24,7 +24,7 @@ export function renderPrint(root, { project, summary }) {
     const result = summary.rooms[i]
     if (!result) return null
     const plan = room.grid.cols > 0
-      ? renderPlan(room, result, { selected: null, show: 'both' }, () => {}, () => {})
+      ? renderPlan(room, result, { selected: null, show: 'both' }, s.inputUnit, () => {}, () => {})
       : null
     return el('section', { class: 'print-room' },
       el('h2', {}, room.name, el('span', { class: 'muted' }, ` · ${result.area > 0 ? formatM2(result.area) : 'Fläche fehlt'}`)),
@@ -33,7 +33,8 @@ export function renderPrint(root, { project, summary }) {
       room.freePoints.length > 0
         ? el('ul', { class: 'print-points' }, ...room.freePoints.map((point) => {
           const h = result.hPoints.get(point.id)
-          return el('li', {}, `${point.label}: ${formatMm(point.value)}${h === undefined ? '' : ` (Schicht ${formatMm(h)})`}`)
+          const diff = result.diffPoints.get(point.id)
+          return el('li', {}, `${point.label}: ${formatReading(point.value, s.inputUnit)}${diff === undefined ? '' : ` (${formatDiff(diff)} mm)`}${h === undefined ? '' : ` (Schicht ${formatMm(h)})`}`)
         }))
         : null,
       result.status !== 'empty'

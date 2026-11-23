@@ -7,7 +7,7 @@
 // Worker ein eigenes Präfix, beantwortet nur seine eigenen Dateien (SHELL) und
 // löscht beim Aktivieren nur eigene Altstände.
 const CACHE_PREFIX = 'pp-bodennivel-';
-const CACHE = CACHE_PREFIX + 'v1';
+const CACHE = CACHE_PREFIX + 'v2';
 const ASSETS = [
   './',
   './index.html',

@@ -124,7 +124,10 @@ function checkProject(raw, strict) {
     createdAt: isStr,
   }, 'Projekt', strict)
 
-  checkFields(project['settings'], Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map((k) => [k, isNum])), 'Einstellungen', strict)
+  checkFields(project['settings'], Object.fromEntries(Object.keys(DEFAULT_SETTINGS).map((k) => [
+    k,
+    k === 'inputUnit' ? (/** @type {unknown} */ v) => v === 'mm' || v === 'cm' : isNum,
+  ])), 'Einstellungen', strict)
 
   const setups = /** @type {unknown[]} */ (project['setups'])
   for (const setup of setups) {

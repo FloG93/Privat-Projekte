@@ -2,7 +2,7 @@
  * Raumansicht: Draufsicht, Eingabeleiste, freie Punkte, Ergebnis.
  */
 
-import { formatKg, formatL, formatM2, formatMm, formatNum, parseMeasurement, parseNum } from '../format.js'
+import { formatDiff, formatKg, formatL, formatM2, formatMm, formatNum, formatReading, parseNum, parseReading } from '../format.js'
 import { formatMark, layerClass } from '../calc.js'
 import { buildCells, gridDims, gridProgress, nextCell, spacing } from '../grid.js'
 import { validateRoomForm } from './dashboard.js'
@@ -165,12 +165,12 @@ async function editRoom(ctx) {
 
 /** @param {RoomCtx} ctx */
 function planBlock(ctx) {
-  const { room, result, commit, rerender, ui } = ctx
+  const { project, room, result, commit, rerender, ui } = ctx
   const progress = gridProgress(room)
   const sx = room.length ? spacing(room.length, room.grid.cols) : null
   const sy = room.width ? spacing(room.width, room.grid.rows) : null
 
-  const plan = renderPlan(room, result, ui,
+  const plan = renderPlan(room, result, ui, project.settings.inputUnit,
     (cell) => {
       ui.selected = cell
       ui.freeLabel = null
@@ -196,7 +196,7 @@ function planBlock(ctx) {
     plan,
     el('div', { class: 'plan-meta' },
       el('strong', {}, `${progress.measured}/${progress.total} gemessen`),
-      el('div', { class: 'chips' }, modeButton('raw', 'Messwert'), modeButton('h', 'Schichtdicke')),
+      el('div', { class: 'chips' }, modeButton('raw', project.settings.laserHeight > 0 ? 'Differenz' : 'Messwert'), modeButton('h', 'Schichtdicke')),
     ),
     el('p', { class: 'hint' }, 'Kleiner Wert = hoher Boden · Großer Wert = tiefe Senke'),
     sx && sy
@@ -228,18 +228,20 @@ function freePointsBlock(ctx) {
 
   const items = room.freePoints.map((point) => {
     const h = result.hPoints.get(point.id)
+    const diff = result.diffPoints.get(point.id)
+    const unit = ctx.project.settings.inputUnit
     return el('li', { class: 'point' },
       el('span', { class: `tile ${h === undefined ? 'empty' : layerClass(h)}` }, h === undefined ? '–' : formatNum(h)),
-      el('span', { class: 'point-main' }, el('strong', {}, point.label), el('small', {}, `Messwert ${formatMm(point.value)}`)),
+      el('span', { class: 'point-main' }, el('strong', {}, point.label), el('small', {}, `Messwert ${formatReading(point.value, unit)}${diff === undefined ? '' : ` · ${formatDiff(diff)} mm zur Laserhöhe`}`)),
       el('button', {
         class: 'btn icon-btn', type: 'button', title: 'Wert ändern', 'aria-label': `${point.label}: Wert ändern`,
         onclick: async () => {
           const values = await formDialog({
             title: point.label,
-            fields: [{ name: 'value', label: 'Messwert (mm)', kind: 'decimal', value: formatNum(point.value, 1).replace(/\./g, '') }],
-            validate: (v) => (parseMeasurement(v['value'] ?? '') === null ? 'Bitte einen Wert zwischen 0 und 2000 mm eingeben.' : null),
+            fields: [{ name: 'value', label: `Messwert (${unit})`, kind: 'decimal', value: formatNum(unit === 'cm' ? point.value / 10 : point.value, 2).replace(/\./g, '') }],
+            validate: (v) => (parseReading(v['value'] ?? '', unit) === null ? `Bitte einen Wert bis ${unit === 'cm' ? '200 cm' : '2000 mm'} eingeben.` : null),
           })
-          const value = values ? parseMeasurement(values['value'] ?? '') : null
+          const value = values ? parseReading(values['value'] ?? '', unit) : null
           if (value === null) return
           commit((p) => {
             const target = p.rooms.find((r) => r.id === room.id)?.freePoints.find((x) => x.id === point.id)

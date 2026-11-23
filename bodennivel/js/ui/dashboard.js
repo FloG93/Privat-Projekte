@@ -2,12 +2,12 @@
  * Projektansicht: Räume, Einkaufsliste, Einstellungen, Laser-Standorte.
  */
 
-import { formatKg, formatL, formatM2, formatMm, formatNum, formatPallets, parseMeasurement, parseNum } from '../format.js'
+import { formatKg, formatL, formatM2, formatMm, formatNum, formatPallets, formatReading, parseNum, parseReading } from '../format.js'
 import { removeSetup, setupInUse, updateSetupRef } from '../calc.js'
 import { createProject, createRoom, newId } from '../model.js'
 import { exportProject, parseImport } from '../store.js'
 import { alertDialog, choiceDialog, confirmDialog, el, formDialog, icon } from './dom.js'
-import { openLaserDialog } from './laser-dialog.js'
+import { describeLaserHeight, openLaserDialog, openLaserHeightDialog } from './laser-dialog.js'
 
 /** @typedef {import('../model.js').Project} Project */
 /** @typedef {import('../model.js').Settings} Settings */
@@ -30,7 +30,7 @@ const MAX_CELLS = 600
 
 /**
  * @typedef {object} SettingSpec
- * @property {keyof Settings} key
+ * @property {Exclude<keyof Settings, 'inputUnit'>} key
  * @property {string} label
  * @property {string} unit
  * @property {number} min
@@ -346,7 +346,13 @@ function settingsSection(ctx) {
       chips,
     )
   })
-  return section(ctx, 'settings', 'Materialeinstellungen', [el('div', { class: 'fields' }, ...fields)])
+  const laser = el('div', { class: 'field' },
+    el('span', { class: 'field-label' }, 'Laserhöhe und Eingabeeinheit'),
+    el('div', { class: 'row' },
+      el('span', { class: 'grow' }, `Laserhöhe ${describeLaserHeight(project)} · Eingabe in ${project.settings.inputUnit}`),
+      el('button', { class: 'btn', type: 'button', onclick: () => openLaserHeightDialog(project, commit) }, icon('pencil'), 'Ändern')),
+    el('small', {}, 'Mit Laserhöhe zeigt die App die Differenz zu jedem abgelesenen Wert (30 cm Laser, 30,4 cm gelesen → +4 mm).'))
+  return section(ctx, 'settings', 'Materialeinstellungen', [laser, el('div', { class: 'fields' }, ...fields)])
 }
 
 // ---------------------------------------------------------------------------
@@ -354,6 +360,7 @@ function settingsSection(ctx) {
 /** @param {DashboardCtx} ctx */
 function setupsSection(ctx) {
   const { project, commit } = ctx
+  const unit = project.settings.inputUnit
   const rows = project.setups.map((setup, index) => {
     const ref = setup.ref
     const inUse = setupInUse(project, setup.id)
@@ -368,7 +375,7 @@ function setupsSection(ctx) {
         el('span', {},
           el('strong', {}, setup.name),
           ` · Versatz ${setup.offset > 0 ? '+' : ''}${formatMm(setup.offset)}`,
-          ref ? el('small', {}, `Bezugspunkt „${ref.label}“: ${formatNum(ref.before)} → ${formatNum(ref.after)} mm`) : null)),
+          ref ? el('small', {}, `Bezugspunkt „${ref.label}“: ${formatReading(ref.before, unit)} → ${formatReading(ref.after, unit)}`) : null)),
       index === 0 ? null : el('button', {
         class: 'btn icon-btn', type: 'button', title: 'Referenzmessung ändern', 'aria-label': `${setup.name}: Referenzmessung ändern`,
         onclick: async () => {
@@ -378,17 +385,17 @@ function setupsSection(ctx) {
             intro: 'Alle Messwerte dieses Standorts werden mit dem neuen Versatz sofort richtig umgerechnet.',
             fields: [
               { name: 'label', label: 'Referenzpunkt', value: ref.label },
-              { name: 'before', label: 'Wert vorher (mm)', kind: 'decimal', value: formatNum(ref.before, 1).replace(/\./g, '') },
-              { name: 'after', label: 'Wert nachher (mm)', kind: 'decimal', value: formatNum(ref.after, 1).replace(/\./g, '') },
+              { name: 'before', label: `Wert vorher (${unit})`, kind: 'decimal', value: formatNum(unit === 'cm' ? ref.before / 10 : ref.before, 2).replace(/\./g, '') },
+              { name: 'after', label: `Wert nachher (${unit})`, kind: 'decimal', value: formatNum(unit === 'cm' ? ref.after / 10 : ref.after, 2).replace(/\./g, '') },
             ],
             validate: (v) => {
               if (!v['label']?.trim()) return 'Bitte den Referenzpunkt benennen.'
-              return parseMeasurement(v['before'] ?? '') === null || parseMeasurement(v['after'] ?? '') === null
-                ? 'Beide Werte als Zahl zwischen 0 und 2000 mm eingeben.' : null
+              return parseReading(v['before'] ?? '', unit) === null || parseReading(v['after'] ?? '', unit) === null
+                ? `Beide Werte als Zahl bis ${unit === 'cm' ? '200 cm' : '2000 mm'} eingeben.` : null
             },
           })
-          const before = values ? parseMeasurement(values['before'] ?? '') : null
-          const after = values ? parseMeasurement(values['after'] ?? '') : null
+          const before = values ? parseReading(values['before'] ?? '', unit) : null
+          const after = values ? parseReading(values['after'] ?? '', unit) : null
           if (!values || before === null || after === null) return
           commit((p) => { updateSetupRef(p, setup.id, (values['label'] ?? '').trim(), before, after) })
         },
