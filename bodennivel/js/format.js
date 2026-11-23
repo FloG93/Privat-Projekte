@@ -58,3 +58,16 @@ export const formatL = (value) => `${formatNum(value)} L`
 
 /** @param {number} value */
 export const formatM2 = (value) => `${formatNum(value, 2)} m²`
+
+/**
+ * Für die Bestellung: „2 Paletten + 7 Säcke“.
+ * @param {number} full volle Paletten
+ * @param {number} rest lose Säcke
+ */
+export function formatPallets(full, rest) {
+  if (full === 0 && rest === 0) return '–'
+  const sacks = `${rest} ${rest === 1 ? 'Sack' : 'Säcke'}`
+  if (full === 0) return `${sacks} (keine volle Palette)`
+  const pallets = `${full} ${full === 1 ? 'Palette' : 'Paletten'}`
+  return rest === 0 ? pallets : `${pallets} + ${sacks}`
+}

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { formatKg, formatL, formatM2, formatMm, formatNum, parseMeasurement, parseNum } from '../js/format.js'
+import { formatKg, formatL, formatM2, formatMm, formatNum, formatPallets, parseMeasurement, parseNum } from '../js/format.js'
 
 describe('parseNum', () => {
   it('liest deutsches Komma und Punkt', () => {
@@ -42,5 +42,15 @@ describe('Formatierung', () => {
     assert.equal(formatKg(1250), '1.250 kg (1,25 t)')
     assert.equal(formatL(13.8), '13,8 L')
     assert.equal(formatM2(21.3375), '21,34 m²')
+  })
+})
+
+describe('formatPallets', () => {
+  it('Aufteilung in volle Paletten und lose Säcke', () => {
+    assert.equal(formatPallets(2, 7), '2 Paletten + 7 Säcke')
+    assert.equal(formatPallets(1, 1), '1 Palette + 1 Sack')
+    assert.equal(formatPallets(3, 0), '3 Paletten')
+    assert.equal(formatPallets(0, 12), '12 Säcke (keine volle Palette)')
+    assert.equal(formatPallets(0, 0), '–')
   })
 })
