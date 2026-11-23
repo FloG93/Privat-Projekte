@@ -212,12 +212,37 @@ function roomsSection({ project, summary, commit, navigate }) {
           ? 'noch nicht gemessen'
           : `${result.measured}/${result.total} gemessen`
     const warn = result && (result.overMax || result.status === 'partial')
-    return el('a', { class: 'card room-card', href: `#/raum/${encodeURIComponent(room.id)}` },
-      el('span', { class: 'room-name' }, room.name),
-      el('span', { class: 'muted' }, result && result.area > 0 ? formatM2(result.area) : 'Fläche fehlt'),
-      el('span', { class: 'muted' }, progress),
-      el('span', { class: 'room-bags' }, result && result.bags > 0 ? `${result.bags} Säcke` : '–'),
-      warn ? el('span', { class: 'warn', title: result.overMax ? 'Grenzwert überschritten' : 'Vorläufig – Raster unvollständig' }, icon('triangle-alert')) : null,
+    const joined = project.connected && room.inGroup
+    return el('div', { class: 'card room-card' },
+      el('a', { class: 'room-main', href: `#/raum/${encodeURIComponent(room.id)}` },
+        el('span', { class: 'room-name' }, room.name),
+        el('span', { class: 'muted' }, result && result.area > 0 ? formatM2(result.area) : 'Fläche fehlt'),
+        el('span', { class: 'muted' }, progress),
+        el('span', { class: 'room-bags' }, result && result.bags > 0 ? `${result.bags} Säcke` : '–'),
+        warn ? el('span', { class: 'warn', title: result.overMax ? 'Grenzwert überschritten' : 'Vorläufig – Raster unvollständig' }, icon('triangle-alert')) : null,
+        result && result.dSoll !== null
+          ? el('small', { class: 'room-level' }, `Soll-Niveau ${formatMm(result.dSoll)} unter der Linie`)
+          : null,
+      ),
+      // Verbund pro Raum: ein = gemeinsames Soll-Niveau mit den anderen
+      // verbundenen Räumen, aus = der Raum wird für sich ausgeglichen.
+      el('label', { class: 'room-join' },
+        el('input', {
+          type: 'checkbox',
+          checked: joined,
+          disabled: !project.connected,
+          'aria-label': `${room.name}: schwellenlos verbunden`,
+          onchange: (/** @type {Event} */ e) => {
+            const on = /** @type {HTMLInputElement} */ (e.target).checked
+            commit((p) => {
+              const target = p.rooms.find((r) => r.id === room.id)
+              if (target) target.inGroup = on
+            })
+          },
+        }),
+        el('span', {}, project.connected
+          ? (joined ? 'Im Verbund' : 'Für sich ausgeglichen')
+          : 'Für sich ausgeglichen (Verbund insgesamt aus)')),
     )
   })
 
