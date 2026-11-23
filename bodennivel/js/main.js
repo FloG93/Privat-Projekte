@@ -127,3 +127,10 @@ document.addEventListener('visibilitychange', () => {
 
 wireThemeToggle(document.getElementById('theme'))
 render()
+
+// Offline-Betrieb: Service Worker nur auf http(s), nie in Tests oder file://.
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  navigator.serviceWorker.register('sw.js').catch(() => {
+    // Ohne Service Worker läuft die App weiter, nur nicht offline-startbar.
+  })
+}
