@@ -64,8 +64,10 @@ function parseRange(text, min, max) {
  * @param {DashboardCtx} ctx
  */
 export function renderDashboard(root, ctx) {
+  const undo = undoBanner(ctx)
   root.append(
     projectHeader(ctx),
+    ...(undo ? [undo] : []),
     roomsSection(ctx),
     shoppingList(ctx),
     settingsSection(ctx),
@@ -168,6 +170,26 @@ function projectHeader({ project, projects, commit }) {
         'Räume schwellenlos verbinden',
         el('small', {}, 'Gemeinsamer Bezug: der höchste Punkt aller verbundenen Räume bestimmt die Soll-Höhe.')),
     ),
+  )
+}
+
+/**
+ * Nach dem Löschen eines Raums: Rückgängig anbieten.
+ * @param {DashboardCtx} ctx */
+function undoBanner({ ui, commit }) {
+  const undo = ui.undoRoom
+  if (!undo) return null
+  return el('p', { class: 'toast', role: 'status' },
+    el('span', {}, `Raum „${undo.room.name}“ gelöscht.`),
+    el('button', {
+      class: 'btn',
+      type: 'button',
+      onclick: () => {
+        ui.undoRoom = null
+        commit((p) => { p.rooms.splice(Math.min(undo.index, p.rooms.length), 0, undo.room) })
+      },
+    }, icon('undo-2'), 'Rückgängig'),
+    el('button', { class: 'btn icon-btn', type: 'button', 'aria-label': 'Hinweis schließen', onclick: () => { ui.undoRoom = null; commit(() => {}) } }, icon('x')),
   )
 }
 

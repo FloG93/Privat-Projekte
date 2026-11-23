@@ -193,3 +193,91 @@ input[type='radio'] { width: 1.5rem; height: 1.5rem; flex: none; accent-color: v
 .form-error { color: var(--high); font-weight: 600; margin: 0.5rem 0 0; min-height: 1.2em; }
 .form-live { margin: 0.4rem 0 0; color: var(--accent); font-weight: 600; }
 .card > h2:first-child { margin-top: 0; }
+
+/* Raumansicht --------------------------------------------------------------- */
+
+.room-head .row { gap: 0.4rem; }
+.room-head h1 { font-size: 1.35rem; }
+.warn-inline { color: var(--mid); display: inline-flex; }
+.switch.compact { margin-top: 0.3rem; align-items: center; }
+
+.toast {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.8rem 0 0;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: 0.6rem;
+  background: var(--chip);
+}
+.toast span { flex: 1; }
+
+.plan-card { padding: 0.6rem; }
+.plan { display: block; width: 100%; height: auto; max-height: 62vh; margin-inline: auto; touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.plan .cell { cursor: pointer; }
+.plan .cell:focus-visible { outline: none; }
+.plan .cell rect { fill: var(--card); stroke: var(--line-strong); stroke-width: 2.5; }
+.plan .cell.empty rect { stroke-dasharray: 9 7; fill: var(--chip); }
+.plan .cell.ok rect { fill: color-mix(in srgb, var(--ok) 38%, var(--card)); stroke: var(--ok); }
+.plan .cell.mid rect { fill: color-mix(in srgb, var(--mid) 42%, var(--card)); stroke: var(--mid); }
+.plan .cell.high rect { fill: color-mix(in srgb, var(--high) 42%, var(--card)); stroke: var(--high); }
+.plan .cell.excluded rect { fill: url(#plan-hatch); stroke: var(--line-strong); }
+.plan .cell.sel rect,
+.plan .cell:focus-visible rect { stroke: var(--accent); stroke-width: 8; stroke-dasharray: none; }
+.plan .hatch-line { stroke: var(--line-strong); }
+.plan text { fill: var(--text); text-anchor: middle; pointer-events: none; font-family: inherit; }
+.plan .v-main { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.plan .v-sub { font-size: 22px; fill: var(--text-muted); }
+.plan .compass { font-size: 28px; font-weight: 600; fill: var(--text-faint); }
+
+.plan-meta { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.5rem; }
+.plan-meta .chips { margin: 0; }
+.hint { margin: 0.5rem 0 0.3rem; font-weight: 600; color: var(--text-muted); }
+
+.wrap-chips { flex-wrap: wrap; }
+
+.points { list-style: none; margin: 0.8rem 0 0; padding: 0; display: grid; gap: 0.5rem; }
+.point { display: flex; align-items: center; gap: 0.6rem; }
+.point-main { flex: 1; min-width: 0; }
+.tile {
+  display: inline-grid;
+  place-items: center;
+  min-width: 3rem;
+  height: 3rem;
+  border-radius: 0.5rem;
+  border: 2px solid var(--line-strong);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tile.ok { background: color-mix(in srgb, var(--ok) 38%, var(--card)); border-color: var(--ok); }
+.tile.mid { background: color-mix(in srgb, var(--mid) 42%, var(--card)); border-color: var(--mid); }
+.tile.high { background: color-mix(in srgb, var(--high) 42%, var(--card)); border-color: var(--high); }
+
+.note { display: flex; gap: 0.5rem; align-items: flex-start; margin: 0.4rem 0; }
+.warn-note { color: var(--mid); font-weight: 600; }
+.note .icon { margin-top: 0.15rem; }
+
+/* Eingabeleiste ------------------------------------------------------------- */
+
+.entry {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 8;
+  padding: 0.6rem 0 calc(0.6rem + env(safe-area-inset-bottom));
+  background: var(--card);
+  border-top: 1px solid var(--line-strong);
+  box-shadow: 0 -6px 24px rgb(0 0 0 / 0.18);
+}
+.entry-form { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 0.5rem; }
+.entry-label { font-weight: 700; font-size: 1.05rem; min-width: 4.6rem; font-variant-numeric: tabular-nums; }
+.entry-input { font-size: 1.6rem; font-weight: 700; text-align: right; min-height: 3.4rem; }
+.entry-unit { color: var(--text-muted); }
+.entry-add { min-width: 3.4rem; min-height: 3.4rem; }
+.entry-tools { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+.entry-tools .btn { flex: 1; }
+.entry-laser { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.5rem; color: var(--text-muted); font-size: 0.9rem; }
+@media (max-width: 26rem) {
+  .entry-label { grid-column: 1 / -1; }
+  .entry-form { grid-template-columns: 1fr auto auto; }
+}

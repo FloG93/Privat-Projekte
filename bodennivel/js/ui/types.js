@@ -15,5 +15,6 @@
  * @typedef {object} Ui
  * @property {Set<string>} open  aufgeklappte <details>
  * @property {(roomId: string) => RoomUi} roomUi
+ * @property {{ room: import('../model.js').Room, index: number } | null} undoRoom  zuletzt gelöschter Raum
  */
 export {}

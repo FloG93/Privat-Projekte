@@ -112,8 +112,9 @@ export async function alertDialog(text) {
  * @property {string} name
  * @property {string} label
  * @property {string} [value]
- * @property {'text' | 'decimal' | 'checkbox'} [kind]
+ * @property {'text' | 'decimal' | 'checkbox' | 'select'} [kind]
  * @property {string} [hint]
+ * @property {Array<{ value: string, label: string }>} [options] für `kind: 'select'`
  */
 
 /**
@@ -130,17 +131,21 @@ export async function alertDialog(text) {
  * @returns {Promise<Record<string, string> | null>}
  */
 export function formDialog({ title, intro, fields, submitLabel = 'Speichern', validate, onInput }) {
+  /** @type {Map<string, HTMLInputElement | HTMLSelectElement>} */
   const inputs = new Map()
   const error = el('p', { class: 'form-error', role: 'alert' })
   const live = el('p', { class: 'form-live' })
 
   /** @returns {Record<string, string>} */
   const values = () => Object.fromEntries([...inputs].map(([name, input]) =>
-    [name, input.type === 'checkbox' ? (input.checked ? 'true' : '') : input.value]))
+    [name, input instanceof HTMLInputElement && input.type === 'checkbox' ? (input.checked ? 'true' : '') : input.value]))
 
   const rows = fields.map((field) => {
     const checkbox = field.kind === 'checkbox'
-    const input = el('input', {
+    const input = field.kind === 'select'
+      ? el('select', { name: field.name },
+        ...(field.options ?? []).map((o) => el('option', { value: o.value, selected: o.value === field.value }, o.label)))
+      : el('input', {
       type: checkbox ? 'checkbox' : 'text',
       name: field.name,
       value: checkbox ? undefined : (field.value ?? ''),

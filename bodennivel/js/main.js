@@ -10,6 +10,7 @@
 import { wireThemeToggle } from '../../shared/js/theme.js'
 import { computeProject } from './calc.js'
 import { renderDashboard } from './ui/dashboard.js'
+import { renderRoom } from './ui/room.js'
 import { el, icon } from './ui/dom.js'
 import { loadState, saveState } from './store.js'
 
@@ -28,6 +29,7 @@ const roomUis = new Map()
 /** @type {Ui} */
 const ui = {
   open: new Set(),
+  undoRoom: null,
   roomUi(roomId) {
     let entry = roomUis.get(roomId)
     if (!entry) {
@@ -85,12 +87,23 @@ function render() {
   const summary = computeProject(project)
   const scroll = window.scrollY
   root.replaceChildren()
-  const ctx = { project, projects: state.projects, summary, commit, navigate, ui }
-  switch (parseRoute().name) {
-    // Raum- und Druckansicht kommen in den nächsten Schritten dazu.
-    default:
-      renderDashboard(root, ctx)
+  document.body.classList.remove('has-entry')
+  const route = parseRoute()
+  if (route.name === 'room') {
+    const index = project.rooms.findIndex((r) => r.id === route.id)
+    const room = project.rooms[index]
+    const result = summary.rooms[index]
+    if (room && result) {
+      ui.undoRoom = null
+      renderRoom(root, { project, room, result, commit, rerender: render, navigate, ui: ui.roomUi(room.id), appUi: ui })
+      renderBanner()
+      window.scrollTo(0, scroll)
+      return
+    }
   }
+  // Raum unbekannt (gelöscht, Link aus einem anderen Projekt): zur Übersicht.
+  // Die Druckansicht kommt in Task 9 dazu.
+  renderDashboard(root, { project, projects: state.projects, summary, commit, navigate, ui })
   renderBanner()
   window.scrollTo(0, scroll)
 }
