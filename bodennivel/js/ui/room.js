@@ -48,6 +48,12 @@ export function renderRoom(root, ctx) {
   const { room, ui } = ctx
   document.body.classList.add('has-entry')
 
+  // Eine ausgeschlossene Zelle darf nicht ausgewählt bleiben, sonst ließe sich
+  // ein Wert eintragen, der nirgends zählt.
+  const sel = ui.selected
+  if (sel && room.grid.cells.find((c) => c.row === sel.row && c.col === sel.col)?.excluded) {
+    ui.selected = nextCell(room, sel)
+  }
   // Ohne Auswahl beginnt die Messung bei der ersten freien Zelle.
   if (room.grid.cols > 0 && ui.selected === null && ui.freeLabel === null) {
     ui.selected = nextCell(room, null)
