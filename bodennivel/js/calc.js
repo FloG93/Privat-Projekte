@@ -76,11 +76,65 @@ export function addSetup(project, label, before, after) {
     id: newId(),
     name: `S${project.setups.length + 1}`,
     offset: setupOffset(project, project.activeSetupId) + (after - before),
-    ref: { label, before, after },
+    ref: { label, before, after, baseId: project.activeSetupId },
   }
   project.setups.push(setup)
   project.activeSetupId = setup.id
   return setup
+}
+
+/**
+ * Rechnet alle Versätze aus Bezugsstandort und Referenzmessung neu. Nötig,
+ * nachdem eine Referenzmessung korrigiert wurde: Folgestandorte bauen darauf auf.
+ * @param {Project} project
+ */
+export function recomputeOffsets(project) {
+  for (const setup of project.setups) {
+    if (!setup.ref) continue
+    setup.offset = setupOffset(project, setup.ref.baseId) + (setup.ref.after - setup.ref.before)
+  }
+}
+
+/**
+ * Korrigiert die Referenzmessung eines Standorts und rechnet alles nach.
+ * @param {Project} project
+ * @param {string} setupId
+ * @param {string} label
+ * @param {number} before
+ * @param {number} after
+ */
+export function updateSetupRef(project, setupId, label, before, after) {
+  const setup = project.setups.find((s) => s.id === setupId)
+  if (!setup?.ref) return
+  setup.ref = { ...setup.ref, label, before, after }
+  recomputeOffsets(project)
+}
+
+/**
+ * Hängt an dem Standort noch etwas? (Messwert oder ein Folgestandort)
+ * @param {Project} project
+ * @param {string} setupId
+ * @returns {boolean}
+ */
+export function setupInUse(project, setupId) {
+  if (project.setups.some((s) => s.ref?.baseId === setupId)) return true
+  return project.rooms.some((room) =>
+    room.grid.cells.some((c) => c.value !== null && c.setupId === setupId)
+    || room.freePoints.some((p) => p.setupId === setupId))
+}
+
+/**
+ * Löscht einen Standort, wenn nichts an ihm hängt. S1 (der erste) bleibt immer.
+ * @param {Project} project
+ * @param {string} setupId
+ * @returns {boolean} ob gelöscht wurde
+ */
+export function removeSetup(project, setupId) {
+  const index = project.setups.findIndex((s) => s.id === setupId)
+  if (index <= 0 || setupInUse(project, setupId)) return false
+  project.setups.splice(index, 1)
+  if (project.activeSetupId === setupId) project.activeSetupId = project.setups[0]?.id ?? project.activeSetupId
+  return true
 }
 
 /**

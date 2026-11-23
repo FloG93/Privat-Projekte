@@ -2,9 +2,11 @@
  * Projektansicht: Räume, Einkaufsliste, Einstellungen, Laser-Standorte.
  */
 
-import { formatKg, formatL, formatM2, formatMm, formatNum, formatPallets, parseNum } from '../format.js'
+import { formatKg, formatL, formatM2, formatMm, formatNum, formatPallets, parseMeasurement, parseNum } from '../format.js'
+import { removeSetup, setupInUse, updateSetupRef } from '../calc.js'
 import { createProject, createRoom } from '../model.js'
 import { alertDialog, confirmDialog, el, formDialog, icon } from './dom.js'
+import { openLaserDialog } from './laser-dialog.js'
 
 /** @typedef {import('../model.js').Project} Project */
 /** @typedef {import('../model.js').Settings} Settings */
@@ -350,21 +352,60 @@ function settingsSection(ctx) {
 /** @param {DashboardCtx} ctx */
 function setupsSection(ctx) {
   const { project, commit } = ctx
-  const rows = project.setups.map((setup) =>
-    el('label', { class: 'setup-row' },
-      el('input', {
-        type: 'radio',
-        name: 'setup',
-        checked: setup.id === project.activeSetupId,
-        onchange: () => commit((p) => { p.activeSetupId = setup.id }),
-      }),
-      el('span', {},
-        el('strong', {}, setup.name),
-        ` · Versatz ${setup.offset > 0 ? '+' : ''}${formatMm(setup.offset)}`,
-        setup.ref ? el('small', {}, `Bezugspunkt „${setup.ref.label}“: ${formatNum(setup.ref.before)} → ${formatNum(setup.ref.after)} mm`) : null),
-    ))
+  const rows = project.setups.map((setup, index) => {
+    const ref = setup.ref
+    const inUse = setupInUse(project, setup.id)
+    return el('div', { class: 'setup-row' },
+      el('label', { class: 'setup-pick' },
+        el('input', {
+          type: 'radio',
+          name: 'setup',
+          checked: setup.id === project.activeSetupId,
+          onchange: () => commit((p) => { p.activeSetupId = setup.id }),
+        }),
+        el('span', {},
+          el('strong', {}, setup.name),
+          ` · Versatz ${setup.offset > 0 ? '+' : ''}${formatMm(setup.offset)}`,
+          ref ? el('small', {}, `Bezugspunkt „${ref.label}“: ${formatNum(ref.before)} → ${formatNum(ref.after)} mm`) : null)),
+      index === 0 ? null : el('button', {
+        class: 'btn icon-btn', type: 'button', title: 'Referenzmessung ändern', 'aria-label': `${setup.name}: Referenzmessung ändern`,
+        onclick: async () => {
+          if (!ref) return
+          const values = await formDialog({
+            title: `${setup.name} korrigieren`,
+            intro: 'Alle Messwerte dieses Standorts werden mit dem neuen Versatz sofort richtig umgerechnet.',
+            fields: [
+              { name: 'label', label: 'Referenzpunkt', value: ref.label },
+              { name: 'before', label: 'Wert vorher (mm)', kind: 'decimal', value: formatNum(ref.before, 1).replace(/\./g, '') },
+              { name: 'after', label: 'Wert nachher (mm)', kind: 'decimal', value: formatNum(ref.after, 1).replace(/\./g, '') },
+            ],
+            validate: (v) => {
+              if (!v['label']?.trim()) return 'Bitte den Referenzpunkt benennen.'
+              return parseMeasurement(v['before'] ?? '') === null || parseMeasurement(v['after'] ?? '') === null
+                ? 'Beide Werte als Zahl zwischen 0 und 2000 mm eingeben.' : null
+            },
+          })
+          const before = values ? parseMeasurement(values['before'] ?? '') : null
+          const after = values ? parseMeasurement(values['after'] ?? '') : null
+          if (!values || before === null || after === null) return
+          commit((p) => { updateSetupRef(p, setup.id, (values['label'] ?? '').trim(), before, after) })
+        },
+      }, icon('pencil')),
+      index === 0 ? null : el('button', {
+        class: 'btn icon-btn',
+        type: 'button',
+        title: inUse ? 'Wird noch verwendet – nicht löschbar' : 'Standort löschen',
+        'aria-label': `${setup.name} löschen`,
+        disabled: inUse,
+        onclick: async () => {
+          if (!(await confirmDialog(`Laser-Standort ${setup.name} löschen?`))) return
+          commit((p) => { removeSetup(p, setup.id) })
+        },
+      }, icon('trash-2')))
+  })
   return section(ctx, 'setups', 'Laser-Standorte', [
     el('p', { class: 'muted' }, 'Neue Messwerte gehören zum aktiven Standort. Der Versatz bezieht sich auf die Linie von S1.'),
     ...rows,
+    el('button', { class: 'btn', type: 'button', onclick: () => openLaserDialog(project, commit) }, icon('crosshair'), 'Laser umsetzen'),
   ])
 }

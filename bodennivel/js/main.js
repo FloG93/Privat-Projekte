@@ -10,6 +10,7 @@
 import { wireThemeToggle } from '../../shared/js/theme.js'
 import { computeProject } from './calc.js'
 import { renderDashboard } from './ui/dashboard.js'
+import { openLaserDialog } from './ui/laser-dialog.js'
 import { renderRoom } from './ui/room.js'
 import { el, icon } from './ui/dom.js'
 import { loadState, saveState } from './store.js'
@@ -95,7 +96,7 @@ function render() {
     const result = summary.rooms[index]
     if (room && result) {
       ui.undoRoom = null
-      renderRoom(root, { project, room, result, commit, rerender: render, navigate, ui: ui.roomUi(room.id), appUi: ui })
+      renderRoom(root, { project, room, result, commit, rerender: render, navigate, ui: ui.roomUi(room.id), appUi: ui, onLaser: () => openLaserDialog(project, commit) })
       renderBanner()
       window.scrollTo(0, scroll)
       return

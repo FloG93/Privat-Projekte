@@ -135,7 +135,7 @@ function checkProject(raw, strict) {
       ref: (v) => v === null || isObject(v),
     }, 'Laser-Standort', strict)
     if (fields['ref'] !== null) {
-      checkFields(fields['ref'], { label: isStr, before: isNum, after: isNum }, 'Laser-Standort', strict)
+      checkFields(fields['ref'], { label: isStr, before: isNum, after: isNum, baseId: isStr }, 'Laser-Standort', strict)
     }
   }
   if (!setups.some((s) => isObject(s) && s['id'] === project['activeSetupId'])) {

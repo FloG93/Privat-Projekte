@@ -22,6 +22,7 @@ import { buildCells, gridDims } from './grid.js'
  * @property {string} label  Bezeichnung des Referenzpunkts
  * @property {number} before Wert vor dem Umsetzen (alter Standort)
  * @property {number} after  Wert nach dem Umsetzen (neuer Standort)
+ * @property {string} baseId  Standort, von dem aus umgesetzt wurde
  */
 
 /**

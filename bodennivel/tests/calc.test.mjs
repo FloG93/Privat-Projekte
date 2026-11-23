@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
-import { addSetup, computeProject, corrected, formatMark, layerClass, setupOffset } from '../js/calc.js'
+import {
+  addSetup, computeProject, corrected, formatMark, layerClass, recomputeOffsets, removeSetup, setupInUse, setupOffset, updateSetupRef,
+} from '../js/calc.js'
 import { createProject, createRoom, newId } from '../js/model.js'
 
 /**
@@ -230,5 +232,71 @@ describe('layerClass', () => {
     assert.equal(layerClass(10.5), 'mid')
     assert.equal(layerClass(25), 'mid')
     assert.equal(layerClass(25.5), 'high')
+  })
+})
+
+describe('Standorte nachträglich ändern', () => {
+  it('recomputeOffsets: Kette S2 −12, S3 +5 ergibt S3 −7; S2 auf −10 → S3 −5', () => {
+    const p = createProject('Test')
+    const s2 = addSetup(p, 'Tür', 20, 8)
+    const s3 = addSetup(p, 'Fenster', 10, 15)
+    assert.equal(s3.offset, -7)
+    if (!s2.ref) throw new Error('ref fehlt')
+    s2.ref.after = 10
+    recomputeOffsets(p)
+    assert.equal(s2.offset, -10)
+    assert.equal(s3.offset, -5)
+  })
+
+  it('der Bezugs-Standort bleibt erhalten, auch wenn der Laser zu S1 zurückgestellt wurde', () => {
+    const p = createProject('Test')
+    addSetup(p, 'Tür', 20, 8)
+    const first = p.setups[0]
+    if (!first) throw new Error('S1 fehlt')
+    p.activeSetupId = first.id
+    const s3 = addSetup(p, 'Flur', 30, 33)
+    assert.equal(s3.offset, 3)
+    recomputeOffsets(p)
+    assert.equal(s3.offset, 3)
+  })
+
+  it('updateSetupRef ändert Werte und rechnet Folgestandorte nach', () => {
+    const p = createProject('Test')
+    const s2 = addSetup(p, 'Tür', 20, 8)
+    const s3 = addSetup(p, 'Fenster', 10, 15)
+    updateSetupRef(p, s2.id, 'Haustür', 20, 10)
+    assert.equal(s2.ref?.label, 'Haustür')
+    assert.equal(s2.offset, -10)
+    assert.equal(s3.offset, -5)
+  })
+
+  it('setupInUse: Zelle, freier Punkt oder Folgestandort halten ihn fest', () => {
+    const p = createProject('Test')
+    const s2 = addSetup(p, 'Tür', 20, 8)
+    assert.equal(setupInUse(p, s2.id), false)
+    const s3 = addSetup(p, 'Fenster', 10, 15)
+    assert.equal(setupInUse(p, s2.id), true)
+    const room = roomWith('A', 1, 1, [12], s3.id)
+    p.rooms.push(room)
+    assert.equal(setupInUse(p, s3.id), true)
+    const cell = room.grid.cells[0]
+    if (!cell) throw new Error('Zelle fehlt')
+    cell.value = null
+    room.freePoints.push({ id: 'x', label: 'Tür', value: 9, setupId: s3.id })
+    assert.equal(setupInUse(p, s3.id), true)
+  })
+
+  it('removeSetup löscht nur freie Standorte und nie S1', () => {
+    const p = createProject('Test')
+    const s1 = p.setups[0]
+    if (!s1) throw new Error('S1 fehlt')
+    const s2 = addSetup(p, 'Tür', 20, 8)
+    assert.equal(removeSetup(p, s1.id), false)
+    assert.equal(removeSetup(p, s2.id), true)
+    assert.equal(p.setups.length, 1)
+    assert.equal(p.activeSetupId, s1.id)
+    const s3 = addSetup(p, 'Fenster', 10, 15)
+    p.rooms.push(roomWith('A', 1, 1, [12], s3.id))
+    assert.equal(removeSetup(p, s3.id), false)
   })
 })

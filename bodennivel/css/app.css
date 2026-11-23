@@ -163,7 +163,9 @@ input[type='radio'] { width: 1.5rem; height: 1.5rem; flex: none; accent-color: v
 .warnings li { display: flex; gap: 0.5rem; align-items: flex-start; color: var(--mid); }
 .warnings li .icon { margin-top: 0.15rem; }
 
-.setup-row { display: flex; gap: 0.7rem; align-items: flex-start; min-height: var(--tap); padding-block: 0.4rem; }
+.setup-row { display: flex; gap: 0.5rem; align-items: center; min-height: var(--tap); padding-block: 0.4rem; }
+.setup-pick { flex: 1; display: flex; gap: 0.7rem; align-items: flex-start; }
+.setup-row + .btn, .fold > .btn { margin-top: 0.5rem; }
 
 .banner {
   display: flex;
